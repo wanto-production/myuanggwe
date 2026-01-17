@@ -5,16 +5,7 @@ import { zod4 } from 'sveltekit-superforms/adapters'; // Gunakan zod standar, bu
 import { superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
 import { eq, and, desc, isNull } from 'drizzle-orm';
-
-const transactionSchema = z.object({
-  amount: z.number().positive('Jumlah harus lebih dari 0'),
-  type: z.enum(['income', 'expense', 'transfer']),
-  description: z.string().max(255).optional(),
-  walletId: z.string().min(1, 'Pilih dompet'),
-  toWalletId: z.string().min(1).optional(),
-  categoryId: z.string().min(1, 'Pilih kategori'),
-  date: z.string().default(new Date().toISOString())
-});
+import { transactionSchema } from "$lib/schemas"
 
 export const load = async ({ locals }) => {
   const { user, session: authSession } = locals;
