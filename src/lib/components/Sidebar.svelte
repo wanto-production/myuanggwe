@@ -18,33 +18,15 @@
 	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { authClient } from '$lib/auth-client';
-	import { invalidateAll } from '$app/navigation';
-
-	type Organization = {
-		id: string;
-		name: string;
-		slug: string;
-		logo: string | null;
-		createdAt: number;
-		metadata: string | null;
-	};
-
-	type User = {
-		id: string;
-		name: string;
-		email: string;
-		emailVerified: boolean;
-		image: string | null;
-		createdAt: number;
-		updatedAt: number;
-		username: string | null;
-		displayUsername: string | null;
-	};
+	import { invalidate } from '$app/navigation';
+	import { buttonVariants } from '$lib/components/ui/button';
+	import type { User as UserType } from 'better-auth';
+	import type { OrganizationType } from '$lib/server/db/schema';
 
 	let { activeOrg, organizations, user } = $props<{
-		activeOrg: Organization | null;
-		organizations: Organization[];
-		user: User;
+		activeOrg: OrganizationType | null;
+		organizations: OrganizationType[];
+		user: UserType;
 	}>();
 
 	let isMinimized = $state(false);
@@ -62,7 +44,12 @@
 	async function handleSwitch(id: string | null) {
 		await authClient.organization.setActive({ organizationId: id });
 		isPopoverOpen = false;
-		await invalidateAll();
+		await invalidate('layout:data');
+	}
+
+	async function handleLogout() {
+		await authClient.signOut();
+		await invalidate('layout:data');
 	}
 </script>
 
@@ -83,42 +70,38 @@
 
 	<div class="p-3">
 		<Popover.Root bind:open={isPopoverOpen}>
-			<Popover.Trigger>
-				{#snippet child({ props })}
-					<Button
-						{...props}
-						variant="outline"
-						class={cn(
-							'w-full justify-between overflow-hidden px-2 transition-all',
-							isMinimized && 'justify-center border-transparent bg-transparent hover:bg-accent'
-						)}
-					>
-						<div class="flex items-center gap-2">
-							{#if !activeOrg}
-								<div
-									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground"
-								>
-									<User size={14} />
-								</div>
-								{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
-										>Personal</span
-									>{/if}
-							{:else}
-								<div
-									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-blue-600 text-white"
-								>
-									<Users size={14} />
-								</div>
-								{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
-										>{activeOrg.name}</span
-									>{/if}
-							{/if}
+			<Popover.Trigger
+				class={buttonVariants({
+					variant: 'outline',
+					class: cn(
+						'w-full justify-between overflow-hidden px-2 transition-all',
+						isMinimized && 'justify-center border-transparent bg-transparent hover:bg-accent'
+					)
+				})}
+			>
+				<div class="flex items-center gap-2">
+					{#if !activeOrg}
+						<div
+							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground"
+						>
+							<User size={14} />
 						</div>
-						{#if !isMinimized}
-							<ChevronDown class="h-4 w-4 shrink-0 opacity-50" />
-						{/if}
-					</Button>
-				{/snippet}
+						{#if !isMinimized}<span class="truncate text-left text-xs font-semibold">Personal</span
+							>{/if}
+					{:else}
+						<div
+							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-blue-600 text-white"
+						>
+							<Users size={14} />
+						</div>
+						{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
+								>{activeOrg.name}</span
+							>{/if}
+					{/if}
+				</div>
+				{#if !isMinimized}
+					<ChevronDown class="h-4 w-4 shrink-0 opacity-50" />
+				{/if}
 			</Popover.Trigger>
 			<Popover.Content class="w-64 p-0" align="start">
 				<Command.Root>
@@ -181,6 +164,9 @@
 	</nav>
 
 	<div class="mt-auto border-t p-3">
+		{#if user}
+			<Button onclick={handleLogout} variant="destructive" class="w-full p-2">logout</Button>
+		{/if}
 		<div
 			class={cn(
 				'flex items-center gap-3 rounded-lg p-2 transition-all hover:bg-accent/50',

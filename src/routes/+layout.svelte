@@ -4,14 +4,16 @@
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
 	import * as Sheet from '$lib/components/ui/sheet';
-	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Tooltip from '$lib/components/ui/tooltip'; // Import Tooltip
 	import { Button } from '$lib/components/ui/button';
 	import { Menu } from 'lucide-svelte';
 	import { Toaster } from '$lib/components/ui/sonner';
 
-	// Ambil data langsung dari props tanpa casting di variabel antara
-	// Kita gunakan data.user dkk langsung di template agar TS melakukan inferensi lokal
 	let { children, data } = $props();
+
+	let user = $derived(data.user);
+	let activeOrg = $derived(data.activeOrg as any);
+	let organizations = $derived((data.organizations || []) as any[]);
 
 	let isAuthPage = $derived(page.url.pathname === '/login' || page.url.pathname === '/register');
 </script>
@@ -21,40 +23,29 @@
 </svelte:head>
 
 <Toaster />
-
 <Tooltip.Provider delayDuration={0}>
 	<div class="flex h-screen w-full overflow-hidden bg-background">
-		{#if data.user && !isAuthPage}
+		{#if user && !isAuthPage}
 			<div class="hidden h-full md:flex">
-				<Sidebar
-					user={data.user as any}
-					activeOrg={data.activeOrg as any}
-					organizations={(data.organizations as any) ?? []}
-				/>
+				<Sidebar {user} {activeOrg} {organizations} />
 			</div>
 
 			<div class="flex min-w-0 flex-1 flex-col">
 				<header class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 md:hidden">
 					<Sheet.Root>
 						<Sheet.Trigger>
-							{#snippet child({ props })}
-								<Button {...props} variant="outline" size="icon">
-									<Menu class="h-5 w-5" />
-								</Button>
-							{/snippet}
+							<Button variant="outline" size="icon">
+								<Menu class="h-5 w-5" />
+							</Button>
 						</Sheet.Trigger>
 						<Sheet.Content side="left" class="w-72 p-0">
-							<Sidebar
-								user={data.user as any}
-								activeOrg={data.activeOrg as any}
-								organizations={(data.organizations as any) ?? []}
-							/>
+							<Sidebar {user} {activeOrg} {organizations} />
 						</Sheet.Content>
 					</Sheet.Root>
 
 					<div class="flex-1 overflow-hidden">
 						<h2 class="truncate text-sm font-semibold">
-							{data.activeOrg?.name ?? 'Personal Account'}
+							{activeOrg?.name ?? 'Personal Account'}
 						</h2>
 					</div>
 				</header>
