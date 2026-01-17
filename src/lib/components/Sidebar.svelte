@@ -1,0 +1,206 @@
+<script lang="ts">
+	import * as Command from '$lib/components/ui/command';
+	import * as Popover from '$lib/components/ui/popover';
+	import { Button } from '$lib/components/ui/button';
+	import { Separator } from '$lib/components/ui/separator';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import {
+		Wallet,
+		ArrowLeftRight,
+		ChartPie,
+		Users,
+		Settings,
+		ChevronDown,
+		Plus,
+		User,
+		ChevronLeft,
+		Layers // Tambahkan ini untuk icon kategori
+	} from 'lucide-svelte';
+	import { cn } from '$lib/utils';
+	import { authClient } from '$lib/auth-client';
+	import { invalidateAll } from '$app/navigation';
+
+	type Organization = {
+		id: string;
+		name: string;
+		slug: string;
+		logo: string | null;
+		createdAt: number;
+		metadata: string | null;
+	};
+
+	type User = {
+		id: string;
+		name: string;
+		email: string;
+		emailVerified: boolean;
+		image: string | null;
+		createdAt: number;
+		updatedAt: number;
+		username: string | null;
+		displayUsername: string | null;
+	};
+
+	let { activeOrg, organizations, user } = $props<{
+		activeOrg: Organization | null;
+		organizations: Organization[];
+		user: User;
+	}>();
+
+	let isMinimized = $state(false);
+	let isPopoverOpen = $state(false);
+
+	// ... (activeOrg, isMinimized, dll tetap sama)
+
+	const menuItems = [
+		{ title: 'Dashboard', icon: ChartPie, href: '/dashboard' },
+		{ title: 'Transaksi', icon: ArrowLeftRight, href: '/transactions' },
+		{ title: 'Dompet', icon: Wallet, href: '/wallets' },
+		{ title: 'Kategori', icon: Layers, href: '/categories' } // Menu Baru
+	];
+
+	async function handleSwitch(id: string | null) {
+		await authClient.organization.setActive({ organizationId: id });
+		isPopoverOpen = false;
+		await invalidateAll();
+	}
+</script>
+
+<aside
+	class={cn(
+		'relative flex h-screen flex-col border-r bg-card transition-all duration-300 ease-in-out',
+		isMinimized ? 'w-17.5' : 'w-64'
+	)}
+>
+	<Button
+		variant="ghost"
+		size="icon"
+		onclick={() => (isMinimized = !isMinimized)}
+		class="absolute top-10 -right-3 z-20 hidden h-6 w-6 rounded-full border bg-background md:flex"
+	>
+		<ChevronLeft class={cn('h-4 w-4 transition-transform', isMinimized && 'rotate-180')} />
+	</Button>
+
+	<div class="p-3">
+		<Popover.Root bind:open={isPopoverOpen}>
+			<Popover.Trigger>
+				{#snippet child({ props })}
+					<Button
+						{...props}
+						variant="outline"
+						class={cn(
+							'w-full justify-between overflow-hidden px-2 transition-all',
+							isMinimized && 'justify-center border-transparent bg-transparent hover:bg-accent'
+						)}
+					>
+						<div class="flex items-center gap-2">
+							{#if !activeOrg}
+								<div
+									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground"
+								>
+									<User size={14} />
+								</div>
+								{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
+										>Personal</span
+									>{/if}
+							{:else}
+								<div
+									class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-blue-600 text-white"
+								>
+									<Users size={14} />
+								</div>
+								{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
+										>{activeOrg.name}</span
+									>{/if}
+							{/if}
+						</div>
+						{#if !isMinimized}
+							<ChevronDown class="h-4 w-4 shrink-0 opacity-50" />
+						{/if}
+					</Button>
+				{/snippet}
+			</Popover.Trigger>
+			<Popover.Content class="w-64 p-0" align="start">
+				<Command.Root>
+					<Command.List>
+						<Command.Group heading="Akun">
+							<Command.Item onSelect={() => handleSwitch(null)}>
+								<User class="mr-2 h-4 w-4" />
+								<span>Personal</span>
+							</Command.Item>
+						</Command.Group>
+						<Separator />
+						<Command.Group heading="Organisasi">
+							{#each organizations as org (org.id)}
+								<Command.Item onSelect={() => handleSwitch(org.id)}>
+									<Users class="mr-2 h-4 w-4" />
+									<span>{org.name}</span>
+								</Command.Item>
+							{/each}
+							<Command.Item>
+								<Plus class="mr-2 h-4 w-4" />
+								<span class="font-medium text-blue-600">Buat Grup Baru</span>
+							</Command.Item>
+						</Command.Group>
+					</Command.List>
+				</Command.Root>
+			</Popover.Content>
+		</Popover.Root>
+	</div>
+
+	<Separator />
+
+	<nav class="flex-1 space-y-2 p-3">
+		{#each menuItems as item (item.href)}
+			<Tooltip.Root delayDuration={0}>
+				<Tooltip.Trigger>
+					{#snippet child({ props })}
+						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+						<a
+							{...props}
+							href={item.href}
+							class={cn(
+								'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-accent',
+								isMinimized && 'justify-center px-0'
+							)}
+						>
+							<item.icon size={20} />
+							{#if !isMinimized}
+								<span class="truncate">{item.title}</span>
+							{/if}
+						</a>
+					{/snippet}
+				</Tooltip.Trigger>
+				{#if isMinimized}
+					<Tooltip.Content side="right">
+						{item.title}
+					</Tooltip.Content>
+				{/if}
+			</Tooltip.Root>
+		{/each}
+	</nav>
+
+	<div class="mt-auto border-t p-3">
+		<div
+			class={cn(
+				'flex items-center gap-3 rounded-lg p-2 transition-all hover:bg-accent/50',
+				isMinimized && 'justify-center px-0'
+			)}
+		>
+			<div
+				class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-background"
+			>
+				<img src="https://avatar.iran.liara.run/public/boy" alt="avatar" />
+			</div>
+			{#if !isMinimized}
+				<div class="flex flex-1 flex-col overflow-hidden text-left text-xs">
+					<span class="truncate font-bold text-foreground">{user.name}</span>
+					<span class="truncate text-muted-foreground">{user.email}</span>
+				</div>
+				<Button variant="ghost" size="icon" class="h-8 w-8">
+					<Settings size={16} />
+				</Button>
+			{/if}
+		</div>
+	</div>
+</aside>
