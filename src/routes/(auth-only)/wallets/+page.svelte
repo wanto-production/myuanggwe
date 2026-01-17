@@ -7,13 +7,17 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Banknote, CreditCard, Plus, Landmark } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { data } = $props();
 	let open = $state(false);
 
 	const { form, enhance } = superForm(data.form, {
 		onUpdated: ({ form }) => {
-			if (form.valid) open = false;
+			if (form.valid) {
+				open = false;
+				toast.success('wallets created!');
+			}
 		}
 	});
 
