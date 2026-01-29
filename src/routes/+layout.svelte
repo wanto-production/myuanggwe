@@ -19,6 +19,42 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+
+	<title>MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis</title>
+	<meta
+		name="description"
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+	/>
+	<meta
+		name="keywords"
+		content="pengelola keuangan, aplikasi keuangan, pencatatan pengeluaran, manajemen anggaran, keuangan pribadi, keuangan bisnis"
+	/>
+	<meta name="author" content="wanto-production" />
+	<meta name="robots" content="index, follow" />
+
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://myuanggwe.vercel.app/" />
+	<meta property="og:title" content="MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis" />
+	<meta
+		property="og:description"
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+	/>
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image" />
+	<meta property="twitter:url" content="https://myuanggwe.vercel.app/" />
+	<meta
+		property="twitter:title"
+		content="MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis"
+	/>
+	<meta
+		property="twitter:description"
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+	/>
+
+	<!-- Canonical URL -->
+	<link rel="canonical" href="https://myuanggwe.vercel.app/" />
 </svelte:head>
 
 <QueryClientProvider client={data.queryClient}>

@@ -7,6 +7,12 @@
 	let { data } = $props();
 </script>
 
+<svelte:head>
+	<title>Dashboard - MyUangGwe | Pengelola Keuangan Pribadi & Bisnis</title>
+	<meta name="description" content="Dashboard MyUangGwe - Pantau keuangan pribadi dan bisnis Anda secara real-time. Lihat saldo, pemasukan, pengeluaran, dan transaksi terbaru." />
+	<meta name="keywords" content="dashboard keuangan, pengelolaan keuangan, saldo keuangan, pemasukan pengeluaran, analisis keuangan, laporan keuangan" />
+</svelte:head>
+
 <div class="space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>

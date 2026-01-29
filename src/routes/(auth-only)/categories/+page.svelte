@@ -9,6 +9,12 @@
 	let open = $state(false);
 </script>
 
+<svelte:head>
+	<title>Kategori - MyUangGwe | Atur Jenis Transaksi Keuangan</title>
+	<meta name="description" content="Atur kategori transaksi keuangan Anda - pemasukan dan pengeluaran - untuk pengelompokan yang lebih rapi dan pelacakan anggaran yang lebih baik." />
+	<meta name="keywords" content="kategori keuangan, jenis transaksi, pengelompokan keuangan, manajemen anggaran, aplikasi keuangan" />
+</svelte:head>
+
 <div class="space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>

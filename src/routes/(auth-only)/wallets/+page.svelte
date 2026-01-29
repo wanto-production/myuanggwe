@@ -48,6 +48,12 @@
 	};
 </script>
 
+<svelte:head>
+	<title>Dompet - MyUangGwe | Kelola Rekening & Saldo Keuangan</title>
+	<meta name="description" content="Kelola semua rekening dan dompet keuangan Anda - bank, kartu kredit, dan tunai - dalam satu tempat." />
+	<meta name="keywords" content="dompet digital, rekening bank, manajemen saldo, pengelolaan keuangan, aplikasi keuangan" />
+</svelte:head>
+
 <div class="space-y-6">
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>

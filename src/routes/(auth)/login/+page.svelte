@@ -11,6 +11,12 @@
 	const { form, errors, enhance } = superForm(data.form);
 </script>
 
+<svelte:head>
+	<title>Login - MyUangGwe | Aplikasi Pengelola Keuangan</title>
+	<meta name="description" content="Masuk ke akun MyUangGwe Anda untuk mengelola keuangan pribadi dan bisnis. Akses dashboard keuangan, laporan, dan fitur-fitur lainnya." />
+	<meta name="keywords" content="login, masuk, akun keuangan, pengelolaan keuangan, dashboard keuangan" />
+</svelte:head>
+
 <div class="flex h-screen items-center justify-center">
 	<Card.Root class="w-full max-w-sm">
 		<Card.Header>

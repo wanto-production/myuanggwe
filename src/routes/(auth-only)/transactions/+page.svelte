@@ -10,6 +10,12 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
+<svelte:head>
+	<title>Transaksi - MyUangGwe | Catat Pemasukan & Pengeluaran</title>
+	<meta name="description" content="Catat dan kelola semua transaksi keuangan Anda - pemasukan, pengeluaran, dan transfer antar dompet di satu tempat." />
+	<meta name="keywords" content="transaksi keuangan, pencatatan keuangan, pemasukan pengeluaran, manajemen keuangan, aplikasi keuangan" />
+</svelte:head>
+
 <div class="space-y-6 p-6">
 	<div class="flex flex-wrap gap-2 items-center justify-between">
 		<div>
