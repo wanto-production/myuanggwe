@@ -1,25 +1,18 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms/client';
 	import * as Card from '$lib/components/ui/card';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Select from '$lib/components/ui/select';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
+	import { buttonVariants } from '$lib/components/ui/button';
 	import { Banknote, CreditCard, Plus, Landmark } from 'lucide-svelte';
+	import WalletsForm from '$lib/components/forms/wallets/wallets-form.svelte';
+	import EditForm from '$lib/components/forms/wallets/edit-form.svelte';
+	import { createMutation, createQuery } from '@tanstack/svelte-query';
+	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
 	let { data } = $props();
-	let open = $state(false);
 
-	const { form, enhance } = superForm(data.form, {
-		onUpdated: ({ form }) => {
-			if (form.valid) {
-				open = false;
-				toast.success('wallets created!');
-			}
-		}
-	});
+	let open = $state(false);
 
 	const icons = {
 		bank: Landmark,
@@ -27,15 +20,24 @@
 		cash: Banknote
 	};
 
-	const typeOptions = [
-		{ value: 'cash', label: 'Tunai (Cash)' },
-		{ value: 'bank', label: 'Bank / E-Wallet' },
-		{ value: 'credit_card', label: 'Kartu Kredit' }
-	];
+	const deleteWalletMutation = createMutation(() => ({
+		mutationKey: ['delete-wallet'],
+		mutationFn: async ({ id }: { id: string }) => {
+			const [res, _] = await Promise.all([
+				client.wallets.erase({ id }).delete(),
+				data.queryClient.invalidateQueries({ queryKey: ['wallets'] })
+			]);
+			if (res.data?.message) toast.message(res.data.message);
+		}
+	}));
 
-	let selectedLabel = $derived(
-		typeOptions.find((t) => t.value === $form.type)?.label ?? 'Pilih tipe'
-	);
+	const walletsQuery = createQuery(() => ({
+		queryKey: ['wallets'],
+		queryFn: async () => {
+			const { data } = await client.wallets.get();
+			return data;
+		}
+	}));
 
 	const formatIDR = (amount: number) => {
 		return new Intl.NumberFormat('id-ID', {
@@ -65,57 +67,55 @@
 					<Dialog.Title>Buat Dompet Baru</Dialog.Title>
 				</Dialog.Header>
 
-				<form method="POST" use:enhance class="space-y-4 pt-4">
-					<div class="space-y-2">
-						<Label for="name">Nama Dompet</Label>
-						<Input id="name" name="name" bind:value={$form.name} placeholder="BCA, Dana, dll" />
-					</div>
-
-					<div class="space-y-2">
-						<Label for="balance">Saldo Awal</Label>
-						<Input id="balance" name="balance" type="number" bind:value={$form.balance} />
-					</div>
-
-					<div class="space-y-2">
-						<Label>Tipe</Label>
-						<Select.Root type="single" bind:value={$form.type} name="type">
-							<Select.Trigger
-								class={buttonVariants({
-									variant: 'outline',
-									class: 'w-full justify-between text-left font-normal'
-								})}
-							>
-								{selectedLabel}
-							</Select.Trigger>
-							<Select.Content>
-								{#each typeOptions as option (option.value)}
-									<Select.Item value={option.value} label={option.label}>
-										{option.label}
-									</Select.Item>
-								{/each}
-							</Select.Content>
-						</Select.Root>
-					</div>
-
-					<Button type="submit" class="w-full">Simpan Dompet</Button>
-				</form>
+				<WalletsForm />
 			</Dialog.Content>
 		</Dialog.Root>
 	</div>
 
 	<div class="grid gap-4 md:grid-cols-3">
-		{#each data.walletList as wallet (wallet.id)}
-			{@const Icon = icons[wallet.type as keyof typeof icons] || Banknote}
-			<Card.Root>
-				<Card.Header class="flex flex-row items-center justify-between pb-2">
-					<Card.Title class="text-sm font-medium">{wallet.name}</Card.Title>
-					<Icon class="h-4 w-4 text-muted-foreground" />
-				</Card.Header>
-				<Card.Content>
-					<div class="text-2xl font-bold">{formatIDR(wallet.balance)}</div>
-					<p class="text-xs text-muted-foreground capitalize">{wallet.type.replace('_', ' ')}</p>
-				</Card.Content>
-			</Card.Root>
-		{/each}
+		{#if !walletsQuery.isPending}
+			{#each walletsQuery.data?.walletList as wallet (wallet.id)}
+				{@const Icon = icons[wallet.type as keyof typeof icons] || Banknote}
+				<Card.Root>
+					<Card.Header class="flex flex-row items-center justify-between pb-2">
+						<Card.Title class="text-sm font-medium">{wallet.name}</Card.Title>
+						<div class="flex items-center gap-2">
+							<i class="rounded-md border-2 p-2">
+								<Icon class="h-4 w-4 text-black" />
+							</i>
+							<button
+								class={buttonVariants({ variant: 'destructive' })}
+								disabled={deleteWalletMutation.isPending}
+								onclick={() => deleteWalletMutation.mutate({ id: wallet.id })}>delete</button
+							>
+							<EditForm {wallet} />
+						</div>
+					</Card.Header>
+					<Card.Content>
+						<div class="text-2xl font-bold">{formatIDR(wallet.balance)}</div>
+						<p class="text-xs text-muted-foreground capitalize">{wallet.type.replace('_', ' ')}</p>
+					</Card.Content>
+				</Card.Root>
+			{/each}
+		{:else}
+			{#each [1, 2, 3, 4, 5, 6, 7]}
+				<Card.Root>
+					<Card.Header class="flex flex-row items-center justify-between pb-2">
+						<Card.Title>
+							<Skeleton class="h-4 w-10" />
+						</Card.Title>
+						<div class="flex items-center gap-2">
+							<Skeleton class=" h-8.5 w-8.5" />
+							<Skeleton class="h-8.5 w-16" />
+							<Skeleton class="h-8.5 w-14" />
+						</div>
+					</Card.Header>
+					<Card.Content>
+						<Skeleton class="h-9 w-30" />
+						<Skeleton class="mt-2 h-4 w-10" />
+					</Card.Content>
+				</Card.Root>
+			{/each}
+		{/if}
 	</div>
 </div>

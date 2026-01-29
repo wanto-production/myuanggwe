@@ -20,14 +20,26 @@ export const registerSchema = z
 
 // transactions
 export const transactionSchema = z.object({
-  amount: z.number().positive('Jumlah harus lebih dari 0'),
+  amount: z.number().int().positive('Amount must be positive'),
   type: z.enum(['income', 'expense', 'transfer']),
-  description: z.string().max(255).optional(),
-  walletId: z.string().min(1, 'Pilih dompet'),
-  toWalletId: z.string().min(1).optional(),
-  categoryId: z.string().min(1, 'Pilih kategori'),
-  date: z.string().default(new Date().toISOString())
-});
+  walletId: z.string().min(1, 'Wallet is required'),
+  toWalletId: z.string().optional(),
+  categoryId: z.string().min(1, 'Category is required'),
+  description: z.string().optional(),
+  date: z.string() // ISO date string
+}).refine(
+  (data) => {
+    // If transfer, toWalletId is required
+    if (data.type === 'transfer' && !data.toWalletId) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Destination wallet is required for transfers',
+    path: ['toWalletId']
+  }
+);
 
 // wallets
 export const walletSchema = z.object({

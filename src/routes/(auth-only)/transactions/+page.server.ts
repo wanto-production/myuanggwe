@@ -1,44 +1,66 @@
 import { db } from '$lib/server/db';
 import { transactions, wallets, categories, session as sessionTable } from '$lib/server/db/schema';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { zod4 } from 'sveltekit-superforms/adapters'; // Gunakan zod standar, bukan zod4 kecuali lib kamu spesifik
 import { superValidate } from 'sveltekit-superforms/server';
 import { z } from 'zod';
 import { eq, and, desc, isNull } from 'drizzle-orm';
 import { transactionSchema } from "$lib/schemas"
 
-export const load = async ({ locals }) => {
-  const { user, session: authSession } = locals;
-  if (!authSession || !user) throw error(401);
 
-  const currentSession = await db.query.session.findFirst({
-    where: eq(sessionTable.id, authSession.id)
-  });
-  const orgId = currentSession?.activeOrganizationId;
+export const load = async ({ parent }) => {
+  const { activeOrg, user, session: authSession } = await parent();
 
-  // Query dengan filter yang benar untuk Personal vs Org
-  const walletFilter = orgId
-    ? eq(wallets.organizationId, orgId)
+  if (!authSession || !user) {
+    throw redirect(303, '/login');
+  }
+
+  // Query filters
+  const walletFilter = activeOrg
+    ? eq(wallets.organizationId, activeOrg.id)
     : and(eq(wallets.userId, user.id), isNull(wallets.organizationId));
-  const categoryFilter = orgId
-    ? eq(categories.organizationId, orgId)
+
+  const categoryFilter = activeOrg
+    ? eq(categories.organizationId, activeOrg.id)
     : and(eq(categories.userId, user.id), isNull(categories.organizationId));
-  const transactionFilter = orgId
-    ? eq(transactions.organizationId, orgId)
+
+  const transactionFilter = activeOrg
+    ? eq(transactions.organizationId, activeOrg.id)
     : and(eq(transactions.userId, user.id), isNull(transactions.organizationId));
 
-  const [walletList, categoryList, transactionList] = await Promise.all([
-    db.query.wallets.findMany({ where: walletFilter }),
-    db.query.categories.findMany({ where: categoryFilter }),
-    db.query.transactions.findMany({
-      where: transactionFilter,
-      with: { category: true, wallet: true },
-      orderBy: [desc(transactions.date)]
-    })
-  ]);
+  try {
+    const [walletList, categoryList, transactionList] = await Promise.all([
+      db.query.wallets.findMany({
+        where: walletFilter,
+        orderBy: [desc(wallets.createdAt)]
+      }),
+      db.query.categories.findMany({
+        where: categoryFilter
+      }),
+      db.query.transactions.findMany({
+        where: transactionFilter,
+        with: {
+          category: true,
+          wallet: true,
+          user: true
+        },
+        orderBy: [desc(transactions.date)],
+        limit: 50
+      })
+    ]);
 
-  const form = await superValidate(zod4(transactionSchema));
-  return { transactionList, walletList, categoryList, form };
+    const form = await superValidate(zod4(transactionSchema));
+
+    return {
+      transactionList,
+      walletList,
+      categoryList,
+      form
+    };
+  } catch (err) {
+    console.error('Transactions load error:', err);
+    throw error(500, 'Failed to load transactions');
+  }
 };
 
 export const actions = {

@@ -14,7 +14,8 @@
 		Plus,
 		User,
 		ChevronLeft,
-		Layers // Tambahkan ini untuk icon kategori
+		Layers, // Tambahkan ini untuk icon kategori
+		LogOut
 	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { authClient } from '$lib/auth-client';
@@ -22,17 +23,7 @@
 	import { buttonVariants } from '$lib/components/ui/button';
 	import type { User as UserType } from 'better-auth';
 	import type { OrganizationType } from '$lib/server/db/schema';
-
-	let { activeOrg, organizations, user } = $props<{
-		activeOrg: OrganizationType | null;
-		organizations: OrganizationType[];
-		user: UserType;
-	}>();
-
-	let isMinimized = $state(false);
-	let isPopoverOpen = $state(false);
-
-	// ... (activeOrg, isMinimized, dll tetap sama)
+	import { sidebarToggle } from '$lib/stores';
 
 	const menuItems = [
 		{ title: 'Dashboard', icon: ChartPie, href: '/dashboard' },
@@ -40,6 +31,16 @@
 		{ title: 'Dompet', icon: Wallet, href: '/wallets' },
 		{ title: 'Kategori', icon: Layers, href: '/categories' } // Menu Baru
 	];
+
+	let { activeOrg, organizations, user } = $props<{
+		activeOrg: OrganizationType | null;
+		organizations: OrganizationType[];
+		user: UserType;
+	}>();
+
+	let isPopoverOpen = $state(false);
+
+	let isMinimized = $derived($sidebarToggle);
 
 	async function handleSwitch(id: string | null) {
 		await authClient.organization.setActive({ organizationId: id });
@@ -55,26 +56,26 @@
 
 <aside
 	class={cn(
-		'relative flex h-screen flex-col border-r bg-card transition-all duration-300 ease-in-out',
-		isMinimized ? 'w-17.5' : 'w-64'
+		'relative flex h-screen flex-col overflow-x-hidden border-r bg-card transition-all duration-300 ease-in-out max-sm:fixed',
+		isMinimized ? 'w-17.5 max-sm:w-0' : 'w-64'
 	)}
 >
-	<Button
-		variant="ghost"
-		size="icon"
-		onclick={() => (isMinimized = !isMinimized)}
-		class="absolute top-10 -right-3 z-20 hidden h-6 w-6 rounded-full border bg-background md:flex"
-	>
-		<ChevronLeft class={cn('h-4 w-4 transition-transform', isMinimized && 'rotate-180')} />
-	</Button>
+	<!-- <Button -->
+	<!-- 	variant="ghost" -->
+	<!-- 	size="icon" -->
+	<!-- 	onclick={() => (isMinimized = !isMinimized)} -->
+	<!-- 	class="absolute top-10 -right-3 z-20 hidden h-6 w-6 rounded-full border bg-background md:flex" -->
+	<!-- > -->
+	<!-- 	<ChevronLeft class={cn('h-4 w-4 transition-transform', isMinimized && 'rotate-180')} /> -->
+	<!-- </Button> -->
 
-	<div class="p-3">
+	<div class="flex justify-evenly p-3">
 		<Popover.Root bind:open={isPopoverOpen}>
 			<Popover.Trigger
 				class={buttonVariants({
 					variant: 'outline',
 					class: cn(
-						'w-full justify-between overflow-hidden px-2 transition-all',
+						'w-full justify-between overflow-hidden px-2 transition-all max-sm:w-[80%]',
 						isMinimized && 'justify-center border-transparent bg-transparent hover:bg-accent'
 					)
 				})}
@@ -86,17 +87,20 @@
 						>
 							<User size={14} />
 						</div>
-						{#if !isMinimized}<span class="truncate text-left text-xs font-semibold">Personal</span
-							>{/if}
+						{#if !isMinimized}
+							<span class="truncate text-left text-xs font-semibold"> Personal </span>
+						{/if}
 					{:else}
 						<div
 							class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-blue-600 text-white"
 						>
 							<Users size={14} />
 						</div>
-						{#if !isMinimized}<span class="truncate text-left text-xs font-semibold"
-								>{activeOrg.name}</span
-							>{/if}
+						{#if !isMinimized}
+							<span class="truncate text-left text-xs font-semibold">
+								{activeOrg.name}
+							</span>
+						{/if}
 					{/if}
 				</div>
 				{#if !isMinimized}
@@ -129,6 +133,10 @@
 				</Command.Root>
 			</Popover.Content>
 		</Popover.Root>
+
+		<Button class="sm:hidden" variant="outline" onclick={() => sidebarToggle.update((v) => !v)}>
+			<ChevronLeft class={isMinimized ? 'rotate-180' : ''} />
+		</Button>
 	</div>
 
 	<Separator />
@@ -165,7 +173,12 @@
 
 	<div class="mt-auto border-t p-3">
 		{#if user}
-			<Button onclick={handleLogout} variant="destructive" class="w-full p-2">logout</Button>
+			<Button onclick={handleLogout} variant="destructive" class="w-full p-2">
+				<LogOut />
+				{#if !isMinimized}
+					logout
+				{/if}
+			</Button>
 		{/if}
 		<div
 			class={cn(

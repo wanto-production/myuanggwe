@@ -2,18 +2,9 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, History } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
+	import { cn, formatIDR, formatDate } from '$lib/utils';
 
 	let { data } = $props();
-
-	// Fungsi helper format rupiah
-	const formatIDR = (amount: number) => {
-		return new Intl.NumberFormat('id-ID', {
-			style: 'currency',
-			currency: 'IDR',
-			minimumFractionDigits: 0
-		}).format(amount);
-	};
 </script>
 
 <div class="space-y-6">
@@ -86,7 +77,7 @@
 						<div class="flex-1 space-y-1">
 							<p class="text-sm leading-none font-medium">{tx.description || tx.category.name}</p>
 							<p class="text-xs text-muted-foreground">
-								{tx.wallet.name} • {new Date(tx.date).toLocaleDateString('id-ID')}
+								{tx.wallet.name} • {formatDate(tx.date)}
 							</p>
 						</div>
 						<div

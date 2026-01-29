@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
+// ============= BETTER AUTH TABLES (Tetap pakai timestamp_ms karena required) =============
 export const user = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
@@ -12,7 +13,7 @@ export const user = sqliteTable('user', {
     .notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .$onUpdate(() => new Date())
     .notNull(),
   username: text('username').unique(),
   displayUsername: text('display_username')
@@ -28,7 +29,7 @@ export const session = sqliteTable(
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .$onUpdate(() => new Date())
       .notNull(),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
@@ -52,19 +53,15 @@ export const account = sqliteTable(
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     idToken: text('id_token'),
-    accessTokenExpiresAt: integer('access_token_expires_at', {
-      mode: 'timestamp_ms'
-    }),
-    refreshTokenExpiresAt: integer('refresh_token_expires_at', {
-      mode: 'timestamp_ms'
-    }),
+    accessTokenExpiresAt: integer('access_token_expires_at', { mode: 'timestamp_ms' }),
+    refreshTokenExpiresAt: integer('refresh_token_expires_at', { mode: 'timestamp_ms' }),
     scope: text('scope'),
     password: text('password'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .$onUpdate(() => new Date())
       .notNull()
   },
   (table) => [index('account_userId_idx').on(table.userId)]
@@ -82,7 +79,7 @@ export const verification = sqliteTable(
       .notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .$onUpdate(() => new Date())
       .notNull()
   },
   (table) => [index('verification_identifier_idx').on(table.identifier)]
@@ -144,51 +141,53 @@ export const invitation = sqliteTable(
   ]
 );
 
-export const wallets = sqliteTable('wallets', {
-  id: text('id').primaryKey().default(crypto.randomUUID()),
-  name: text('name').notNull(), // Misal: "Rekening Utama", "Kas Bersama"
-  type: text('type').default('cash').notNull(), // cash, bank, credit_card
-  balance: integer('balance').default(0).notNull(), // Simpan dalam satuan terkecil (misal: Rupiah tanpa desimal)
+// ============= APP TABLES (Ubah ke timestamp biasa) =============
 
-  // KUNCI KOLABORASI:
-  // Jika organizationId terisi, ini dompet grup. Jika null, ini dompet personal user.
+export const wallets = sqliteTable('wallets', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name').notNull(),
+  type: text('type').default('cash').notNull(),
+  balance: integer('balance').default(0).notNull(),
   organizationId: text('organization_id').references(() => organization.id, {
     onDelete: 'cascade'
   }),
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+  // UBAH: timestamp_ms → timestamp
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
     .notNull()
 });
 
 export const categories = sqliteTable('categories', {
-  id: text('id').primaryKey().default(crypto.randomUUID()),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
-  icon: text('icon'), // Simpan nama ikon Lucide
-  type: text('type').notNull(), // 'income' atau 'expense'
+  icon: text('icon'),
+  type: text('type').notNull(),
   organizationId: text('organization_id').references(() => organization.id, {
     onDelete: 'cascade'
   }),
   userId: text('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' })
+    .references(() => user.id, { onDelete: 'cascade' }),
+  // UBAH: timestamp_ms → timestamp
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
+    .notNull()
 });
 
 export const transactions = sqliteTable('transactions', {
-  id: text('id').primaryKey().default(crypto.randomUUID()),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   amount: integer('amount').notNull(),
-  // Tambah kolom ini:
   type: text('type', { enum: ['income', 'expense', 'transfer'] }).notNull(),
   description: text('description'),
-  date: integer('date', { mode: 'timestamp_ms' }).notNull(),
-  // ... sisanya tetep sama
+  // UBAH: timestamp_ms → timestamp
+  date: integer('date', { mode: 'timestamp' }).notNull(),
   walletId: text('wallet_id')
     .notNull()
     .references(() => wallets.id, { onDelete: 'cascade' }),
-  toWalletId: text('to_wallet_id').references(() => wallets.id, { onDelete: 'cascade' }), // Kolom baru
+  toWalletId: text('to_wallet_id').references(() => wallets.id, { onDelete: 'cascade' }),
   categoryId: text('category_id')
     .notNull()
     .references(() => categories.id),
@@ -198,26 +197,55 @@ export const transactions = sqliteTable('transactions', {
   organizationId: text('organization_id').references(() => organization.id, {
     onDelete: 'cascade'
   }),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+  // UBAH: timestamp_ms → timestamp
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`)
     .notNull()
 });
 
-// --- Update Relations ---
+// ============= RELATIONS =============
 
 export const walletRelations = relations(wallets, ({ one, many }) => ({
   organization: one(organization, {
     fields: [wallets.organizationId],
     references: [organization.id]
   }),
-  user: one(user, { fields: [wallets.userId], references: [user.id] }),
+  user: one(user, {
+    fields: [wallets.userId],
+    references: [user.id]
+  }),
+  transactions: many(transactions)
+}));
+
+export const categoryRelations = relations(categories, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [categories.organizationId],
+    references: [organization.id]
+  }),
+  user: one(user, {
+    fields: [categories.userId],
+    references: [user.id]
+  }),
   transactions: many(transactions)
 }));
 
 export const transactionRelations = relations(transactions, ({ one }) => ({
-  wallet: one(wallets, { fields: [transactions.walletId], references: [wallets.id] }),
-  category: one(categories, { fields: [transactions.categoryId], references: [categories.id] }),
-  user: one(user, { fields: [transactions.userId], references: [user.id] }),
+  wallet: one(wallets, {
+    fields: [transactions.walletId],
+    references: [wallets.id]
+  }),
+  toWallet: one(wallets, {
+    fields: [transactions.toWalletId],
+    references: [wallets.id]
+  }),
+  category: one(categories, {
+    fields: [transactions.categoryId],
+    references: [categories.id]
+  }),
+  user: one(user, {
+    fields: [transactions.userId],
+    references: [user.id]
+  }),
   organization: one(organization, {
     fields: [transactions.organizationId],
     references: [organization.id]
@@ -228,7 +256,10 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   members: many(member),
-  invitations: many(invitation)
+  invitations: many(invitation),
+  wallets: many(wallets),
+  categories: many(categories),
+  transactions: many(transactions)
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -247,7 +278,10 @@ export const accountRelations = relations(account, ({ one }) => ({
 
 export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
-  invitations: many(invitation)
+  invitations: many(invitation),
+  wallets: many(wallets),
+  categories: many(categories),
+  transactions: many(transactions)
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({
@@ -266,10 +300,16 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
     fields: [invitation.organizationId],
     references: [organization.id]
   }),
-  user: one(user, {
+  inviter: one(user, {
     fields: [invitation.inviterId],
     references: [user.id]
   })
 }));
 
+// ============= TYPES =============
+
 export type OrganizationType = typeof organization.$inferSelect;
+export type UserType = typeof user.$inferSelect;
+export type WalletType = typeof wallets.$inferSelect;
+export type CategoryType = typeof categories.$inferSelect;
+export type TransactionType = typeof transactions.$inferSelect;
