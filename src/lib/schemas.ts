@@ -52,5 +52,5 @@ export const walletSchema = z.object({
 export const categorySchema = z.object({
   name: z.string().min(2, 'Minimal 2 karakter'),
   type: z.enum(['income', 'expense']),
-  icon: z.string().default('Tag') // Nama icon Lucide
+  icon: z.string().default('Tag').optional() // Nama icon Lucide
 });

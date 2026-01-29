@@ -8,14 +8,14 @@
 </script>
 
 <div class="space-y-6">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
 			<p class="text-sm text-muted-foreground">
 				Overview keuangan {data.activeOrg ? `Grup ${data.activeOrg.name}` : 'Personal'}
 			</p>
 		</div>
-		<Button class="gap-2">
+		<Button href="/transactions" class="gap-2">
 			<Plus class="h-4 w-4" /> Transaksi
 		</Button>
 	</div>

@@ -26,21 +26,25 @@
 </script>
 
 <header class="flex h-auto shrink-0 items-center gap-4 border-b-2 bg-background p-3">
-	{#if user}
-		<Button onclick={() => sidebarToggle.update((v) => !v)} size="icon" variant="outline">
-			<Menu class="h-5 w-5" />
-			<span class="sr-only">Toggle Menu</span>
-		</Button>
-	{/if}
+	<Button
+		disabled={!user}
+		onclick={() => sidebarToggle.update((v) => !v)}
+		size="icon"
+		variant="outline"
+	>
+		<Menu class="h-5 w-5" />
+		<span class="sr-only">Toggle Menu</span>
+	</Button>
 
 	<!-- Main header content -->
 	<div class="flex w-full items-center justify-between gap-2">
-		<div class="flex-1 overflow-hidden">
-			<h2 class="truncate text-sm font-semibold">
-				{activeOrg?.name ?? 'Personal Account'}
-			</h2>
-		</div>
-		{#if !user}
+		{#if user}
+			<div class="flex-1 overflow-hidden">
+				<h2 class="truncate text-sm font-semibold">
+					{activeOrg?.name ?? 'Personal Account'}
+				</h2>
+			</div>
+		{:else}
 			<a href="/" class="mr-auto text-lg font-semibold"> MyUang </a>
 		{/if}
 
@@ -54,10 +58,10 @@
 				{/if}
 			</Button>
 
-			{#if !user}
-				<Button variant="ghost" href="/login">Sign In</Button>
-				<Button href="/register">Sign Up</Button>
-			{/if}
+			<!-- {#if !user} -->
+			<!-- 	<Button variant="ghost" href="/login">Sign In</Button> -->
+			<!-- 	<Button href="/register">Sign Up</Button> -->
+			<!-- {/if} -->
 		</div>
 	</div>
 </header>

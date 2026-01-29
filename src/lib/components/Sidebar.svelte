@@ -3,7 +3,6 @@
 	import * as Popover from '$lib/components/ui/popover';
 	import { Button } from '$lib/components/ui/button';
 	import { Separator } from '$lib/components/ui/separator';
-	import * as Tooltip from '$lib/components/ui/tooltip';
 	import {
 		Wallet,
 		ArrowLeftRight,
@@ -143,31 +142,18 @@
 
 	<nav class="flex-1 space-y-2 p-3">
 		{#each menuItems as item (item.href)}
-			<Tooltip.Root delayDuration={0}>
-				<Tooltip.Trigger>
-					{#snippet child({ props })}
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-						<a
-							{...props}
-							href={item.href}
-							class={cn(
-								'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-accent',
-								isMinimized && 'justify-center px-0'
-							)}
-						>
-							<item.icon size={20} />
-							{#if !isMinimized}
-								<span class="truncate">{item.title}</span>
-							{/if}
-						</a>
-					{/snippet}
-				</Tooltip.Trigger>
-				{#if isMinimized}
-					<Tooltip.Content side="right">
-						{item.title}
-					</Tooltip.Content>
+			<a
+				href={item.href}
+				class={cn(
+					'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-accent',
+					isMinimized && 'justify-center px-0'
+				)}
+			>
+				<item.icon size={20} />
+				{#if !isMinimized}
+					<span class="truncate">{item.title}</span>
 				{/if}
-			</Tooltip.Root>
+			</a>
 		{/each}
 	</nav>
 

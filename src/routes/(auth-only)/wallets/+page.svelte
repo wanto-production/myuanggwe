@@ -3,8 +3,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { Banknote, CreditCard, Plus, Landmark } from 'lucide-svelte';
-	import WalletsForm from '$lib/components/forms/wallets/wallets-form.svelte';
-	import EditForm from '$lib/components/forms/wallets/edit-form.svelte';
+	import WalletsForm from '$lib/components/wallets/wallets-form.svelte';
+	import EditForm from '$lib/components/wallets/edit-form.svelte';
 	import { createMutation, createQuery } from '@tanstack/svelte-query';
 	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
@@ -49,7 +49,7 @@
 </script>
 
 <div class="space-y-6">
-	<div class="flex items-center justify-between">
+	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">Dompet Saya</h1>
 			<p class="text-sm text-muted-foreground">

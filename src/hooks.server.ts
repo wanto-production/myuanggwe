@@ -20,7 +20,7 @@ const authHandler: Handle = async ({ event, resolve }) => {
 };
 
 const guardHandler: Handle = async ({ event, resolve }) => {
-  if (['/', '/dashboard', '/transaction'].includes(event.url.pathname) && !event.locals.user) {
+  if (['/', '/dashboard', '/transactions', '/wallets', '/categories'].includes(event.url.pathname) && !event.locals.user) {
     return redirect(302, '/login');
   }
 

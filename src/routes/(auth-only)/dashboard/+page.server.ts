@@ -2,15 +2,11 @@
 import { db } from '$lib/server/db';
 import { transactions, wallets } from '$lib/server/db/schema';
 import { eq, and, isNull, gte, sql, desc } from 'drizzle-orm';
-import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ parent }) => {
+export const load: PageServerLoad = async ({ parent, depends }) => {
+  depends('dashboard:data')
   const { activeOrg, user } = await parent();
-
-  if (!user) {
-    throw redirect(303, '/login');
-  }
 
   // Tentukan awal bulan berjalan
   const startOfMonth = new Date();
