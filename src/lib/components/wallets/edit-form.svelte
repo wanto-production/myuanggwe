@@ -10,11 +10,11 @@
 	import { client } from '$lib/eden';
 	import { useQueryClient } from '@tanstack/svelte-query';
 
-	let { wallet } = $props();
+	let { wallet, open = $bindable(false) } = $props();
 
 	const queryClient = useQueryClient();
-	let open = $state(false);
 
+	//@ts-ignore
 	const walletsForm = createForm(() => ({
 		defaultValues: {
 			name: wallet.name!,
@@ -22,6 +22,7 @@
 			balance: wallet.balance!
 		},
 		validators: {
+			onChange: walletSchema,
 			onSubmit: walletSchema
 		},
 		onSubmit: async ({ value }) => {
@@ -43,12 +44,6 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Trigger>
-		{#snippet child({ props })}
-			<Button {...props} variant="outline" class="text-yellow-500">edit</Button>
-		{/snippet}
-	</Sheet.Trigger>
-
 	<Sheet.Content side="right">
 		<Sheet.Header>
 			<Sheet.Title>Edit {wallet.name}</Sheet.Title>

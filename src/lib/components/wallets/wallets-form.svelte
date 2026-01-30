@@ -9,22 +9,25 @@
 	import { client } from '$lib/eden';
 	import { useQueryClient } from '@tanstack/svelte-query';
 
+	let { open = $bindable(false) } = $props();
+
 	const queryClient = useQueryClient();
 
 	const walletsForm = createForm(() => ({
 		defaultValues: {
 			name: '',
-			type: 'cash',
+			type: 'cash' as 'cash' | 'bank' | 'credit_card' | null,
 			balance: 2000
 		},
-		validator: {
-			onsubmit: walletSchema
+		validators: {
+			onChange: walletSchema,
+			onSubmit: walletSchema
 		},
 		onSubmit: async ({ value }) => {
 			const res = await client.wallets.create.post(value);
 			await queryClient.invalidateQueries({ queryKey: ['wallets'] });
-
 			if (res.data?.message) toast.message(res.data.message);
+			open = false;
 		}
 	}));
 
@@ -58,6 +61,11 @@
 					}}
 					placeholder="BCA, Dana, dll"
 				/>
+				{#if field.state.meta.errors.length > 0}
+					<p class="text-sm font-medium text-destructive">
+						{field.state.meta.errors[0].message}
+					</p>
+				{/if}
 			{/snippet}
 		</walletsForm.Field>
 	</div>
@@ -77,6 +85,11 @@
 					}}
 					placeholder="2000"
 				/>
+				{#if field.state.meta.errors.length > 0}
+					<p class="text-sm font-medium text-destructive">
+						{field.state.meta.errors[0].message}
+					</p>
+				{/if}
 			{/snippet}
 		</walletsForm.Field>
 	</div>
@@ -102,13 +115,18 @@
 						{/each}
 					</Select.Content>
 				</Select.Root>
+				{#if field.state.meta.errors.length > 0}
+					<p class="text-sm font-medium text-destructive">
+						{field.state.meta.errors[0].message}
+					</p>
+				{/if}
 			{/snippet}
 		</walletsForm.Field>
 	</div>
 
-	<walletsForm.Subscribe selector={(state) => state.isSubmitting}>
-		{#snippet children(isSubmitting)}
-			<Button type="submit" class="w-full" disabled={isSubmitting}>
+	<walletsForm.Subscribe selector={(state) => [state.isSubmitting, state.canSubmit]}>
+		{#snippet children([isSubmitting, canSubmit])}
+			<Button type="submit" class="w-full" disabled={isSubmitting || !canSubmit}>
 				{isSubmitting ? 'Menyimpan...' : 'Simpan Dompet'}
 			</Button>
 		{/snippet}

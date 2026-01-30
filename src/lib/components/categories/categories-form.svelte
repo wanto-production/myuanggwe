@@ -17,7 +17,8 @@
 			type: 'expense' as 'income' | 'expense'
 		},
 		validators: {
-			onSubmit: categorySchema
+			onSubmit: categorySchema,
+			onChange: categorySchema
 		},
 		onSubmit: async ({ value }) => {
 			const res = await client.categories.create.post(value);
@@ -34,11 +35,6 @@
 		{ value: 'income', label: 'Pemasukan' },
 		{ value: 'expense', label: 'Pengeluaran' }
 	];
-
-	let selectedLabel = $derived.by(() => {
-		const type = form.useStore((state) => state.values.type);
-		return typeOptions.find((t) => t.value === String(type))?.label;
-	});
 </script>
 
 {#snippet fieldInput(field: any, label: string, placeholder: string)}
@@ -53,7 +49,7 @@
 			{placeholder}
 		/>
 		{#if field.state.meta.errors.length}
-			<p class="text-xs text-destructive">{field.state.meta.errors.join(', ')}</p>
+			<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
 		{/if}
 	</div>
 {/snippet}
@@ -87,7 +83,7 @@
 							class: 'w-full justify-between font-normal'
 						})}
 					>
-						{selectedLabel}
+						{typeOptions.find((t) => t.value === String(field.state.value))?.label}
 					</Select.Trigger>
 					<Select.Content>
 						{#each typeOptions as opt (opt.value)}

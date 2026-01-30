@@ -46,7 +46,8 @@
 			date: new Date().toISOString().split('T')[0]
 		},
 		validators: {
-			onSubmit: transactionSchema
+			onSubmit: transactionSchema,
+			onChange: transactionSchema
 		},
 		onSubmit: async ({ value }) => {
 			try {

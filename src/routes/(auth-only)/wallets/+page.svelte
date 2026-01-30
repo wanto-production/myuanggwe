@@ -1,18 +1,20 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import { Banknote, CreditCard, Plus, Landmark } from 'lucide-svelte';
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+	import { Banknote, CreditCard, Plus, Landmark, MoreVertical } from 'lucide-svelte';
 	import WalletsForm from '$lib/components/wallets/wallets-form.svelte';
 	import EditForm from '$lib/components/wallets/edit-form.svelte';
 	import { createMutation, createQuery } from '@tanstack/svelte-query';
 	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import DropdownAction from '$lib/components/DropdownAction.svelte';
 
 	let { data } = $props();
 
-	let open = $state(false);
+	let dialog_open = $state(false);
+	let sheet_open = $state(false);
 
 	const icons = {
 		bank: Landmark,
@@ -23,11 +25,11 @@
 	const deleteWalletMutation = createMutation(() => ({
 		mutationKey: ['delete-wallet'],
 		mutationFn: async ({ id }: { id: string }) => {
-			const [res, _] = await Promise.all([
-				client.wallets.erase({ id }).delete(),
-				data.queryClient.invalidateQueries({ queryKey: ['wallets'] })
-			]);
+			const res = await client.wallets.erase({ id }).delete();
 			if (res.data?.message) toast.message(res.data.message);
+		},
+		onSuccess() {
+			data.queryClient.invalidateQueries({ queryKey: ['wallets'] });
 		}
 	}));
 
@@ -50,8 +52,14 @@
 
 <svelte:head>
 	<title>Dompet - MyUangGwe | Kelola Rekening & Saldo Keuangan</title>
-	<meta name="description" content="Kelola semua rekening dan dompet keuangan Anda - bank, kartu kredit, dan tunai - dalam satu tempat." />
-	<meta name="keywords" content="dompet digital, rekening bank, manajemen saldo, pengelolaan keuangan, aplikasi keuangan" />
+	<meta
+		name="description"
+		content="Kelola semua rekening dan dompet keuangan Anda - bank, kartu kredit, dan tunai - dalam satu tempat."
+	/>
+	<meta
+		name="keywords"
+		content="dompet digital, rekening bank, manajemen saldo, pengelolaan keuangan, aplikasi keuangan"
+	/>
 </svelte:head>
 
 <div class="space-y-6">
@@ -63,7 +71,7 @@
 			</p>
 		</div>
 
-		<Dialog.Root bind:open>
+		<Dialog.Root bind:open={dialog_open}>
 			<Dialog.Trigger class={buttonVariants({ class: 'gap-2' })}>
 				<Plus class="h-4 w-4" /> Tambah Dompet
 			</Dialog.Trigger>
@@ -73,7 +81,7 @@
 					<Dialog.Title>Buat Dompet Baru</Dialog.Title>
 				</Dialog.Header>
 
-				<WalletsForm />
+				<WalletsForm bind:open={dialog_open} />
 			</Dialog.Content>
 		</Dialog.Root>
 	</div>
@@ -89,12 +97,17 @@
 							<i class="rounded-md border-2 p-2">
 								<Icon class="h-4 w-4 text-black" />
 							</i>
-							<button
-								class={buttonVariants({ variant: 'destructive' })}
-								disabled={deleteWalletMutation.isPending}
-								onclick={() => deleteWalletMutation.mutate({ id: wallet.id })}>delete</button
+							<DropdownAction
+								onDelete={() => deleteWalletMutation.mutate({ id: wallet.id })}
+								onUpdate={() => (sheet_open = !sheet_open)}
 							>
-							<EditForm {wallet} />
+								{#snippet trigger({ props })}
+									<Button variant="outline" size="icon" {...props}>
+										<MoreVertical class="h-4 w-4" />
+									</Button>
+								{/snippet}
+							</DropdownAction>
+							<EditForm bind:open={sheet_open} {wallet} />
 						</div>
 					</Card.Header>
 					<Card.Content>
