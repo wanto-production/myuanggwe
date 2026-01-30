@@ -2,13 +2,13 @@
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import * as Select from '$lib/components/ui/select';
 	import { toast } from 'svelte-sonner';
 	import { walletSchema } from '$lib/schemas.js';
 	import { createForm } from '@tanstack/svelte-form';
 	import { client } from '$lib/eden';
 	import { useQueryClient } from '@tanstack/svelte-query';
+	import SheetLayoutForm from '$lib/components/SheetLayoutForm.svelte';
 
 	let { wallet, open = $bindable(false) } = $props();
 
@@ -43,15 +43,12 @@
 	] as const;
 </script>
 
-<Sheet.Root bind:open>
-	<Sheet.Content side="right">
-		<Sheet.Header>
-			<Sheet.Title>Edit {wallet.name}</Sheet.Title>
-			<Sheet.Description>
-				Ubah informasi dompet {wallet.name}
-			</Sheet.Description>
-		</Sheet.Header>
-
+<SheetLayoutForm
+	bind:open
+	label={`Edit ${wallet.name}`}
+	descriptions={`Ubah informasi dompet ${wallet.name}`}
+>
+	{#snippet form()}
 		<form
 			class="space-y-4 p-4"
 			onsubmit={(e) => {
@@ -143,13 +140,5 @@
 				{/snippet}
 			</walletsForm.Subscribe>
 		</form>
-
-		<Sheet.Footer>
-			<Sheet.Close>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline">Tutup</Button>
-				{/snippet}
-			</Sheet.Close>
-		</Sheet.Footer>
-	</Sheet.Content>
-</Sheet.Root>
+	{/snippet}
+</SheetLayoutForm>

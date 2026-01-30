@@ -222,7 +222,38 @@ const app = new Elysia({ prefix: '/api' })
         });
 
         return { message: "category created!" };
+      }, { auth: true, body: categorySchema })
+      .delete('/remove/:id', async (c) => {
+        const { user } = c
+        try {
+          await db.delete(categories).where(
+            and(
+              eq(categories.userId, user.id),
+              eq(categories.id, c.params.id)
+            )
+          )
 
+          return { message: 'delete category complete' }
+        } catch (e) {
+          return { message: (e as Error).message }
+        }
+      }, { auth: true })
+      .put('/edit/:id', async (c) => {
+        const { user } = c
+        try {
+          await db.update(categories).set({
+            ...c.body
+          }).where(
+            and(
+              eq(categories.userId, user.id),
+              eq(categories.id, c.params.id)
+            )
+          )
+
+          return { message: "category update" }
+        } catch (e) {
+          return { message: "cannot update category" }
+        }
       }, { auth: true, body: categorySchema })
   })
 
