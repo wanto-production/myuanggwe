@@ -43,5 +43,9 @@
 		</Dialog.Root>
 	</div>
 
-	<TransactionsList transactions={data.transactionList} wallets={data.walletList} />
+	<TransactionsList
+		transactions={data.transactionList}
+		wallets={data.walletList}
+		categories={data.categoryList}
+	/>
 </div>

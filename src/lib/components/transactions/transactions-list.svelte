@@ -1,6 +1,14 @@
 <script lang="ts">
 	import { ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
+	import DropdownAction from '$lib/components/DropdownAction.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { MoreVertical } from 'lucide-svelte';
 	import { cn } from '$lib/utils';
+	import EditForm from './edit-form.svelte';
+	import { invalidate } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
+	import { client } from '$lib/eden';
+	import { createMutation } from '@tanstack/svelte-query';
 
 	type Transaction = {
 		id: string;
@@ -8,7 +16,7 @@
 		amount: number;
 		description?: string | null;
 		date: Date | number;
-		wallet: { name: string };
+		wallet: Wallet;
 		category?: { name: string } | null;
 		toWalletId?: string | null;
 	};
@@ -20,11 +28,38 @@
 
 	let {
 		transactions,
-		wallets
+		wallets,
+		categories
 	}: {
 		transactions: Transaction[];
 		wallets: Wallet[];
+		categories: any[];
 	} = $props();
+
+	let editingTransaction = $state<Transaction | null>(null);
+	let isEditSheetOpen = $state(false);
+
+	$effect(() => {
+		if (!isEditSheetOpen) {
+			editingTransaction = null;
+		}
+	});
+
+	const deleteTransactionsMutation = createMutation(() => ({
+		mutationKey: ['delete-transactions'],
+		mutationFn: async ({ id }: { id: string }) => {
+			const res = await client.transactions.erase({ id }).delete();
+			if (res.data?.message) toast.message(res.data.message);
+		},
+		onSuccess() {
+			invalidate('transactions:data');
+		}
+	}));
+
+	const handleUpdateClick = (tx: Transaction) => {
+		editingTransaction = tx;
+		isEditSheetOpen = true;
+	};
 
 	const formatRupiah = (amount: number) => {
 		return new Intl.NumberFormat('id-ID', {
@@ -39,6 +74,10 @@
 		return d.toLocaleDateString('id-ID');
 	};
 </script>
+
+{#if editingTransaction}
+	<EditForm bind:open={isEditSheetOpen} transaction={editingTransaction} {wallets} {categories} />
+{/if}
 
 <div class="rounded-md border bg-card">
 	{#each transactions as tx (tx.id)}
@@ -74,23 +113,35 @@
 					</p>
 				</div>
 			</div>
-			<div class="text-right">
-				<p
-					class={cn(
-						'font-bold',
-						tx.type === 'income'
-							? 'text-green-600 dark:text-green-400'
-							: tx.type === 'expense'
-								? 'text-red-600 dark:text-red-400'
-								: ''
-					)}
+			<div class="flex items-center gap-4 text-right">
+				<div>
+					<p
+						class={cn(
+							'font-bold',
+							tx.type === 'income'
+								? 'text-green-600 dark:text-green-400'
+								: tx.type === 'expense'
+									? 'text-red-600 dark:text-red-400'
+									: ''
+						)}
+					>
+						{tx.type === 'income' ? '+' : '-'}
+						{formatRupiah(tx.amount)}
+					</p>
+					<p class="text-[10px] text-muted-foreground">
+						{formatDate(tx.date)}
+					</p>
+				</div>
+				<DropdownAction
+					onUpdate={() => handleUpdateClick(tx)}
+					onDelete={() => deleteTransactionsMutation.mutate({ id: tx.id })}
 				>
-					{tx.type === 'income' ? '+' : '-'}
-					{formatRupiah(tx.amount)}
-				</p>
-				<p class="text-[10px] text-muted-foreground">
-					{formatDate(tx.date)}
-				</p>
+					{#snippet trigger({ props })}
+						<Button variant="outline" size="icon" {...props}>
+							<MoreVertical class="h-4 w-4" />
+						</Button>
+					{/snippet}
+				</DropdownAction>
 			</div>
 		</div>
 	{:else}

@@ -28,10 +28,12 @@
 
 	let {
 		wallets,
-		categories
+		categories,
+		open = $bindable(false)
 	}: {
 		wallets: Wallet[];
 		categories: Category[];
+		open: boolean;
 	} = $props();
 
 	//@ts-ignore
@@ -51,11 +53,33 @@
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const res = await client.transactions.create.post(value);
-				await invalidate('transactions:data');
+				// Transform payload: only include relevant fields
+				const payload: any = {
+					type: value.type,
+					amount: value.amount,
+					walletId: value.walletId,
+					description: value.description || null,
+					date: value.date
+				};
 
-				if (res.data?.message) toast.message(res.data.message);
+				if (value.type === 'transfer') {
+					payload.toWalletId = value.toWalletId;
+				} else {
+					payload.categoryId = value.categoryId;
+				}
+
+				const res = await client.transactions.create.post(payload);
+
+				if (res.data?.message) {
+					toast.success(res.data.message);
+					await invalidate('transactions:data');
+					open = false;
+					transactionForm.reset();
+				} else if (res.error) {
+					toast.error('Terjadi kesalahan');
+				}
 			} catch (error) {
+				console.error(error);
 				toast.error('Terjadi kesalahan');
 			}
 		}
@@ -82,7 +106,7 @@
 </script>
 
 <form
-	class="space-y-4"
+	class="space-y-4 p-4"
 	onsubmit={(e) => {
 		e.preventDefault();
 		e.stopPropagation();
@@ -123,10 +147,9 @@
 					}}
 					placeholder="0"
 					min="0"
-					required
 				/>
 				{#if field.state.meta.errors.length > 0}
-					<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
+					<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
 				{/if}
 			</div>
 		{/snippet}
@@ -138,7 +161,7 @@
 			{#snippet children(field)}
 				<div class="space-y-2">
 					<Label>
-						{transactionForm.state.values.type === 'transfer' ? 'Dari Dompet' : 'Dompet'}
+						{stores.current.values.type === 'transfer' ? 'Dari Dompet' : 'Dompet'}
 					</Label>
 					<Select.Root type="single" value={field.state.value} onValueChange={field.handleChange}>
 						<Select.Trigger class="w-full">
@@ -153,14 +176,14 @@
 						</Select.Content>
 					</Select.Root>
 					{#if field.state.meta.errors.length > 0}
-						<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
+						<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
 					{/if}
 				</div>
 			{/snippet}
 		</transactionForm.Field>
 
 		<!-- To Wallet (for transfer) -->
-		{#if transactionForm.state.values.type === 'transfer'}
+		{#if stores.current.values.type === 'transfer'}
 			<transactionForm.Field name="toWalletId">
 				{#snippet children(field)}
 					<div class="space-y-2">
@@ -170,7 +193,7 @@
 								{selectedToWallet}
 							</Select.Trigger>
 							<Select.Content>
-								{#each wallets.filter((w) => w.id !== transactionForm.state.values.walletId) as wallet (wallet.id)}
+								{#each wallets.filter((w) => w.id !== stores.current.values.walletId) as wallet (wallet.id)}
 									<Select.Item value={wallet.id} label={wallet.name}>
 										{wallet.name}
 									</Select.Item>
@@ -178,15 +201,13 @@
 							</Select.Content>
 						</Select.Root>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
+							<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
 						{/if}
 					</div>
 				{/snippet}
 			</transactionForm.Field>
-		{/if}
-
-		<!-- Category (for income/expense) -->
-		{#if transactionForm.state.values.type !== 'transfer'}
+		{:else}
+			<!-- Category (for income/expense) -->
 			<transactionForm.Field name="categoryId">
 				{#snippet children(field)}
 					<div class="space-y-2">
@@ -205,7 +226,7 @@
 							</Select.Content>
 						</Select.Root>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
+							<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
 						{/if}
 					</div>
 				{/snippet}

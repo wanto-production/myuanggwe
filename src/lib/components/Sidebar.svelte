@@ -55,7 +55,7 @@
 
 <aside
 	class={cn(
-		'relative flex h-screen flex-col overflow-x-hidden border-r bg-card transition-all duration-300 ease-in-out max-sm:fixed',
+		'relative flex h-screen flex-col overflow-x-hidden border-r bg-card transition-all duration-300 ease-in-out max-sm:fixed z-10',
 		isMinimized ? 'w-17.5 max-sm:w-0' : 'w-64'
 	)}
 >

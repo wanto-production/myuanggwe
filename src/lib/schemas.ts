@@ -20,26 +20,32 @@ export const registerSchema = z
 
 // transactions
 export const transactionSchema = z.object({
-  amount: z.number().int().positive('Amount must be positive'),
   type: z.enum(['income', 'expense', 'transfer']),
-  walletId: z.string().min(1, 'Wallet is required'),
-  toWalletId: z.string().optional(),
-  categoryId: z.string().min(1, 'Category is required'),
-  description: z.string().optional(),
-  date: z.string() // ISO date string
-}).refine(
-  (data) => {
-    // If transfer, toWalletId is required
-    if (data.type === 'transfer' && !data.toWalletId) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: 'Destination wallet is required for transfers',
-    path: ['toWalletId']
+  amount: z.number().positive('Jumlah harus lebih dari 0'),
+  walletId: z.string().min(1, 'Pilih dompet'),
+  toWalletId: z.string().optional().nullable(),
+  categoryId: z.string().optional().nullable(),
+  description: z.string().optional().nullable(),
+  date: z.string().min(1, 'Tanggal harus diisi')
+}).refine((data) => {
+  // Jika transfer, toWalletId harus diisi
+  if (data.type === 'transfer') {
+    return !!data.toWalletId;
   }
-);
+  return true;
+}, {
+  message: 'Dompet tujuan harus diisi untuk transfer',
+  path: ['toWalletId']
+}).refine((data) => {
+  // Jika bukan transfer, categoryId harus diisi
+  if (data.type !== 'transfer') {
+    return !!data.categoryId;
+  }
+  return true;
+}, {
+  message: 'Kategori harus diisi',
+  path: ['categoryId']
+});
 
 // wallets
 export const walletSchema = z.object({

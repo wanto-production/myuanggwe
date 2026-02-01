@@ -16,9 +16,9 @@
 
 	const categoryForm = createForm(() => ({
 		defaultValues: {
-			name: category.name,
-			type: category.type,
-			icon: category.icon
+			name: category.name as string,
+			type: category.type as string,
+			icon: category.icon as string
 		},
 		validators: {
 			onChange: categorySchema,
