@@ -7,6 +7,7 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import Header from '$lib/components/Header.svelte';
 	import { QueryClientProvider } from '@tanstack/svelte-query';
+	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
 
 	let { children, data } = $props();
 
@@ -75,4 +76,5 @@
 			</div>
 		</div>
 	</Tooltip.Provider>
+	<SvelteQueryDevtools />
 </QueryClientProvider>

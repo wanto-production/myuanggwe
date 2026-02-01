@@ -59,6 +59,7 @@ const userData = new Elysia({ name: 'layout-data' })
 const app = new Elysia({ prefix: '/api' })
   .use(betterAuth)
   .use(userData)
+  .get('/users', ({ user, session }) => ({ user, session }), { auth: true })
   //** wallets routes  *//
   .group('/wallets', (app) => {
     return app
@@ -424,6 +425,26 @@ const app = new Elysia({ prefix: '/api' })
   //** categories routes */
   .group('/categories', (app) => {
     return app
+      .get('/', async (c) => {
+        const { user, currentSession } = c;
+
+        const queryUserOrgs = await db.query.member.findMany({
+          where: eq(member.userId, user.id),
+          with: { organization: true }
+        });
+
+        const activeOrg = queryUserOrgs.find(
+          (o) => o.organizationId === currentSession?.activeOrganizationId
+        )?.organization;
+
+        const categoryList = await db.query.categories.findMany({
+          where: activeOrg
+            ? eq(categories.organizationId, activeOrg.id)
+            : and(eq(categories.userId, user.id), isNull(categories.organizationId))
+        });
+
+        return { categoryList, activeOrg: activeOrg || null };
+      }, { auth: true })
       .post('/create', async (c) => {
         const { user, session: authSession } = c;
         const currentSession = await db.query.session.findFirst({

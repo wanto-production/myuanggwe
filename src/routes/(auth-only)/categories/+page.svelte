@@ -5,8 +5,6 @@
 	import CategoriesForm from '$lib/components/categories/categories-form.svelte';
 	import CategoriesList from '$lib/components/categories/categories-list.svelte';
 
-	let { data } = $props();
-
 	let open_dialog = $state(false);
 </script>
 
@@ -47,5 +45,5 @@
 		</Dialog.Root>
 	</div>
 
-	<CategoriesList {data} />
+	<CategoriesList />
 </div>

@@ -38,15 +38,7 @@
 
 	<!-- Main header content -->
 	<div class="flex w-full items-center justify-between gap-2">
-		{#if user}
-			<div class="flex-1 overflow-hidden">
-				<h2 class="truncate text-sm font-semibold">
-					{activeOrg?.name ?? 'Personal Account'}
-				</h2>
-			</div>
-		{:else}
-			<a href="/" class="mr-auto text-lg font-semibold"> MyUang </a>
-		{/if}
+		<a href="/" class="mr-auto text-lg font-semibold"> MyUangGwe </a>
 
 		<div class="flex items-center gap-2">
 			<!-- Dark mode toggle - ALWAYS RENDERED -->

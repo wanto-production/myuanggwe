@@ -23,6 +23,7 @@
 	import type { User as UserType } from 'better-auth';
 	import type { OrganizationType } from '$lib/server/db/schema';
 	import { sidebarToggle } from '$lib/stores';
+	import { page } from '$app/state';
 
 	const menuItems = [
 		{ title: 'Dashboard', icon: ChartPie, href: '/dashboard' },
@@ -40,6 +41,7 @@
 	let isPopoverOpen = $state(false);
 
 	let isMinimized = $derived($sidebarToggle);
+	let isRoot = $derived(page.url.pathname === '/');
 
 	async function handleSwitch(id: string | null) {
 		await authClient.organization.setActive({ organizationId: id });
@@ -55,8 +57,8 @@
 
 <aside
 	class={cn(
-		'relative flex h-screen flex-col overflow-x-hidden border-r bg-card transition-all duration-300 ease-in-out max-sm:fixed z-10',
-		isMinimized ? 'w-17.5 max-sm:w-0' : 'w-64'
+		'relative z-10 flex h-screen flex-col overflow-x-hidden border-r bg-card transition-all duration-300 ease-in-out max-sm:fixed',
+		isMinimized ? (isRoot ? 'w-0' : 'w-17.5 max-sm:w-0') : 'w-64'
 	)}
 >
 	<!-- <Button -->
@@ -172,11 +174,6 @@
 				isMinimized && 'justify-center px-0'
 			)}
 		>
-			<div
-				class="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-slate-200 ring-2 ring-background"
-			>
-				<img src="https://avatar.iran.liara.run/public/boy" alt="avatar" />
-			</div>
 			{#if !isMinimized}
 				<div class="flex flex-1 flex-col overflow-hidden text-left text-xs">
 					<span class="truncate font-bold text-foreground">{user.name}</span>
