@@ -11,7 +11,7 @@ export const load = ({ data }) => {
   })
 
   return {
-    ...data,
-    queryClient
+    queryClient,
+    ...data
   }
 }

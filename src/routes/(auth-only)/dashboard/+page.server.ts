@@ -16,11 +16,11 @@ export const load: PageServerLoad = async ({ parent, depends }) => {
   // Context query untuk org vs personal
   const contextQuery = activeOrg
     ? eq(transactions.organizationId, activeOrg.id)
-    : and(eq(transactions.userId, user.id), isNull(transactions.organizationId));
+    : and(eq(transactions.userId, user?.id!), isNull(transactions.organizationId));
 
   const walletContextQuery = activeOrg
     ? eq(wallets.organizationId, activeOrg.id)
-    : and(eq(wallets.userId, user.id), isNull(wallets.organizationId));
+    : and(eq(wallets.userId, user?.id!), isNull(wallets.organizationId));
 
   try {
     // Parallel queries

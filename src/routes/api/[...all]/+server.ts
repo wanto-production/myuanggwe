@@ -130,6 +130,23 @@ const app = new Elysia({ prefix: '/api' })
   //** transactions routes */
   .group('/transactions', (app) => {
     return app
+      .get('/', async (c) => {
+        const { user, activeOrg } = c;
+
+        const transactionList = await db.query.transactions.findMany({
+          where: activeOrg
+            ? eq(transactions.organizationId, activeOrg.id)
+            : and(eq(transactions.userId, user.id), isNull(transactions.organizationId)),
+          with: {
+            wallet: true,      // Include wallet relation
+            toWallet: true,    // Include toWallet relation
+            category: true     // Include category relation
+          },
+          orderBy: (transactions, { desc }) => [desc(transactions.date)]
+        });
+
+        return { transactionList };
+      }, { auth: true })
       .post('/create', async (c) => {
         const { user } = c;
         const { amount, type, walletId, toWalletId, categoryId, description, date } = c.body;
