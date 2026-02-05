@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { Menu, Moon, Sun } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
-	import * as Sheet from '$lib/components/ui/sheet';
-	import Sidebar from '$lib/components/Sidebar.svelte';
 	import { onMount } from 'svelte';
 	import { sidebarToggle } from '$lib/stores';
+	import { toggleMode } from 'mode-watcher';
 
-	let { user, activeOrg, organizations } = $props();
+	let { user } = $props();
 
 	let isDarkMode = $state(false);
-	let open = $state(false);
 
 	onMount(() => {
 		isDarkMode = document.documentElement.classList.contains('dark');
@@ -17,11 +15,7 @@
 
 	function toggleDarkMode() {
 		isDarkMode = !isDarkMode;
-		if (isDarkMode) {
-			document.documentElement.classList.add('dark');
-		} else {
-			document.documentElement.classList.remove('dark');
-		}
+		toggleMode();
 	}
 </script>
 

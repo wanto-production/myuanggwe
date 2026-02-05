@@ -2,7 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { Elysia } from 'elysia';
 import { auth } from '$lib/auth';
 import { categorySchema, walletSchema } from '$lib/schemas';
-import { eq, and, isNull } from 'drizzle-orm'; // Tambahkan and & isNull
+import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'; // Tambahkan and & isNull
 import { db } from '$lib/server/db';
 import { wallets, session as sessionTable, member, transactions, categories } from '$lib/server/db/schema';
 import { transactionSchema } from '$lib/schemas';
@@ -60,6 +60,90 @@ const app = new Elysia({ prefix: '/api' })
   .use(betterAuth)
   .use(userData)
   .get('/users', ({ user, session }) => ({ user, session }), { auth: true })
+  .get('/layout', async (c) => {
+    const { user, session: authSession, organizations, activeOrg } = c;
+    if (!authSession) {
+      return { user: null, activeOrg: null, organizations: [] };
+    }
+    return {
+      user,
+      session: authSession,
+      organizations,
+      activeOrg
+    };
+  }, { auth: true })
+  .get('/dashboard', async (c) => {
+    const { activeOrg, user } = c;
+
+    // Tentukan awal bulan berjalan
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Context query untuk org vs personal
+    const contextQuery = activeOrg
+      ? eq(transactions.organizationId, activeOrg.id)
+      : and(eq(transactions.userId, user?.id!), isNull(transactions.organizationId));
+
+    const walletContextQuery = activeOrg
+      ? eq(wallets.organizationId, activeOrg.id)
+      : and(eq(wallets.userId, user?.id!), isNull(wallets.organizationId));
+
+    try {
+      // Parallel queries
+      const [userWallets, stats, recentTransactions] = await Promise.all([
+        // 1. Ambil semua wallet
+        db.query.wallets.findMany({
+          where: walletContextQuery,
+          orderBy: [desc(wallets.createdAt)]
+        }),
+
+        // 2. Stats bulan ini
+        db
+          .select({
+            type: transactions.type,
+            total: sql<number>`cast(sum(${transactions.amount}) as integer)`
+          })
+          .from(transactions)
+          .where(and(contextQuery, gte(transactions.date, startOfMonth)))
+          .groupBy(transactions.type),
+
+        // 3. Recent transactions
+        db.query.transactions.findMany({
+          where: contextQuery,
+          with: {
+            category: true,
+            wallet: true,
+            user: true
+          },
+          orderBy: [desc(transactions.date)],
+          limit: 5
+        })
+      ]);
+
+      const totalBalance = userWallets.reduce((acc, curr) => acc + curr.balance, 0);
+      const monthlyIncome = stats.find((s) => s.type === 'income')?.total || 0;
+      const monthlyExpense = stats.find((s) => s.type === 'expense')?.total || 0;
+
+      return {
+        walletList: userWallets,
+        totalBalance,
+        walletCount: userWallets.length,
+        monthlyIncome,
+        monthlyExpense,
+        recentTransactions
+      };
+    } catch (error) {
+      return {
+        walletList: [],
+        totalBalance: 0,
+        walletCount: 0,
+        monthlyIncome: 0,
+        monthlyExpense: 0,
+        recentTransactions: []
+      };
+    }
+  }, { auth: true })
   //** wallets routes  *//
   .group('/wallets', (app) => {
     return app

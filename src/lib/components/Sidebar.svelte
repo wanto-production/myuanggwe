@@ -42,7 +42,7 @@
 
 	let isMinimized = $derived($sidebarToggle);
 	let isRoot = $derived(page.url.pathname === '/');
-
+  
 	async function handleSwitch(id: string | null) {
 		await authClient.organization.setActive({ organizationId: id });
 		isPopoverOpen = false;

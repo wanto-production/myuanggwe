@@ -57,7 +57,7 @@
 					<Card.Title class="text-sm font-medium">{wallet.name}</Card.Title>
 					<div class="flex items-center gap-2">
 						<i class="rounded-md border-2 p-2">
-							<Icon class="h-4 w-4 text-black" />
+							<Icon class="h-4 w-4" />
 						</i>
 						<DropdownAction
 							onDelete={() => deleteWalletMutation.mutate({ id: wallet.id })}
