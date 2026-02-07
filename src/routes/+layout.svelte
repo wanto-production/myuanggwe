@@ -8,11 +8,11 @@
 	import Header from '$lib/components/Header.svelte';
 	import { QueryClientProvider } from '@tanstack/svelte-query';
 	import { SvelteQueryDevtools } from '@tanstack/svelte-query-devtools';
-  import { ModeWatcher } from 'mode-watcher';
+	import { ModeWatcher } from 'mode-watcher';
 
 	let { children, data } = $props();
 
-	let user = $derived(data.queryClient);
+	let user = $derived(data.user);
 	let activeOrg = $derived(data.activeOrg as any);
 	let organizations = $derived((data.organizations || []) as any[]);
 
@@ -59,7 +59,7 @@
 	<link rel="canonical" href="https://myuanggwe.vercel.app/" />
 </svelte:head>
 
-<ModeWatcher/>
+<ModeWatcher />
 <QueryClientProvider client={data.queryClient}>
 	<Toaster />
 	<Tooltip.Provider delayDuration={0}>
@@ -71,7 +71,7 @@
 			{/if}
 
 			<div class="flex min-w-0 flex-1 flex-col">
-				<Header {user} {activeOrg} {organizations} />
+				<Header {user} />
 				<main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
 					{@render children()}
 				</main>

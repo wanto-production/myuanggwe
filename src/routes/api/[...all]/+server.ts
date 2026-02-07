@@ -6,6 +6,7 @@ import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'; // Tambahkan and 
 import { db } from '$lib/server/db';
 import { wallets, session as sessionTable, member, transactions, categories } from '$lib/server/db/schema';
 import { transactionSchema } from '$lib/schemas';
+import cors from '@elysiajs/cors';
 
 const betterAuth = new Elysia({ name: "better-auth" })
   .mount(auth.handler)
@@ -59,6 +60,14 @@ const userData = new Elysia({ name: 'layout-data' })
 const app = new Elysia({ prefix: '/api' })
   .use(betterAuth)
   .use(userData)
+  .use(
+    cors({
+      origin: ["http://localhost:5173", "https://myuanggwe.vercel.app"],
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  )
   .get('/users', ({ user, session }) => ({ user, session }), { auth: true })
   .get('/layout', async (c) => {
     const { user, session: authSession, organizations, activeOrg } = c;

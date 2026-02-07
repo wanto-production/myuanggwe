@@ -176,7 +176,7 @@
 		>
 			{#if !isMinimized}
 				<div class="flex flex-1 flex-col overflow-hidden text-left text-xs">
-					<span class="truncate font-bold text-foreground">{user.name}</span>
+          <span class="truncate font-bold text-foreground">{user.name}</span>
 					<span class="truncate text-muted-foreground">{user.email}</span>
 				</div>
 				<Button variant="ghost" size="icon" class="h-8 w-8">
