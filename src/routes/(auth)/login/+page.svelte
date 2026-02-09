@@ -1,72 +1,141 @@
 <script lang="ts">
-	import { superForm } from 'sveltekit-superforms/client';
+	import { createForm } from '@tanstack/svelte-form';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { Loader2 } from 'lucide-svelte';
+	import { toast } from 'svelte-sonner';
+	import { loginSchema } from '$lib/schemas';
+	import { authClient } from '$lib/auth-client';
+	import { goto, invalidateAll } from '$app/navigation';
 
-	let { data } = $props();
-
-	// enhance memastikan login berjalan tanpa reload halaman (SPA feel)
-	const { form, errors, enhance } = superForm(data.form);
+	const loginForm = createForm(() => ({
+		defaultValues: {
+			email: '',
+			password: ''
+		},
+		validators: {
+			onChange: loginSchema,
+			onSubmit: loginSchema
+		},
+		onSubmit: async ({ value }) => {
+			await authClient.signIn.email(value, {
+				async onError(context) {
+					toast.error(context.error.message);
+        },
+				async onSuccess() {
+					toast.success('Login successful!');
+          goto('/dashboard')
+				}
+			});
+		}
+	}));
 </script>
 
 <svelte:head>
-	<title>Login - MyUangGwe | Aplikasi Pengelola Keuangan</title>
-	<meta name="description" content="Masuk ke akun MyUangGwe Anda untuk mengelola keuangan pribadi dan bisnis. Akses dashboard keuangan, laporan, dan fitur-fitur lainnya." />
-	<meta name="keywords" content="login, masuk, akun keuangan, pengelolaan keuangan, dashboard keuangan" />
+	<title>Login - MyUangGwe | Financial Management App</title>
+	<meta
+		name="description"
+		content="Sign in to your MyUangGwe account to manage your personal and business finances. Access financial dashboard, reports, and other features."
+	/>
+	<meta
+		name="keywords"
+		content="login, sign in, financial account, financial management, financial dashboard"
+	/>
 </svelte:head>
 
-<div class="flex h-screen items-center justify-center">
+<div class="flex min-h-screen items-center justify-center p-4">
 	<Card.Root class="w-full max-w-sm">
 		<Card.Header>
-			<Card.Title class="text-2xl">Login</Card.Title>
-			<Card.Description>Enter your email below to login to your account.</Card.Description>
+			<Card.Title class="text-2xl">Sign In</Card.Title>
+			<Card.Description>Enter your email below to sign in to your account.</Card.Description>
 		</Card.Header>
-		<Card.Content class="grid gap-4">
-			<form method="POST" use:enhance class="grid gap-4">
-				<div class="grid gap-2">
-					<Label for="email">Email</Label>
-					<Input
-						id="email"
-						name="email"
-						type="email"
-						placeholder="m@example.com"
-						bind:value={$form.email}
-					/>
-					{#if $errors.email}
-						<p class="text-sm text-red-500">{$errors.email}</p>
-					{/if}
-				</div>
+		<Card.Content>
+			<form
+				class="grid gap-4"
+				onsubmit={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					loginForm.handleSubmit();
+				}}
+			>
+				<!-- Email Field -->
+				<loginForm.Field name="email">
+					{#snippet children(field)}
+						<div class="grid gap-2">
+							<Label for="email">Email</Label>
+							<Input
+								id="email"
+								type="email"
+								placeholder="name@example.com"
+								value={field.state.value}
+								onblur={field.handleBlur}
+								oninput={(e) => {
+									const target = e.target as HTMLInputElement;
+									field.handleChange(target.value);
+								}}
+								required
+								autocomplete="email"
+							/>
+							{#if field.state.meta.errors.length > 0}
+								<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
+							{/if}
+						</div>
+					{/snippet}
+				</loginForm.Field>
 
-				<div class="grid gap-2">
-					<div class="flex items-center justify-between">
-						<Label for="password">Password</Label>
-						<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-						<a href="/forgot-password" class="text-xs underline hover:text-primary"
-							>Forgot password?</a
-						>
-					</div>
-					<Input
-						id="password"
-						name="password"
-						type="password"
-						placeholder="********"
-						bind:value={$form.password}
-					/>
-					{#if $errors.password}
-						<p class="text-sm text-red-500">{$errors.password}</p>
-					{/if}
-				</div>
+				<!-- Password Field -->
+				<loginForm.Field name="password">
+					{#snippet children(field)}
+						<div class="grid gap-2">
+							<div class="flex items-center justify-between">
+								<Label for="password">Password</Label>
+								<a href="/forgot-password" class="text-xs underline hover:text-primary">
+									Forgot password?
+								</a>
+							</div>
+							<Input
+								id="password"
+								type="password"
+								placeholder="••••••••"
+								value={field.state.value}
+								onblur={field.handleBlur}
+								oninput={(e) => {
+									const target = e.target as HTMLInputElement;
+									field.handleChange(target.value);
+								}}
+								required
+								autocomplete="current-password"
+							/>
+							{#if field.state.meta.errors.length > 0}
+								<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
+							{/if}
+						</div>
+					{/snippet}
+				</loginForm.Field>
 
-				<Button type="submit" class="w-full">Login</Button>
+				<!-- Submit Button -->
+				<loginForm.Subscribe selector={(state) => state.isSubmitting}>
+					{#snippet children(isSubmitting)}
+						<Button type="submit" class="w-full" disabled={isSubmitting}>
+							{#if isSubmitting}
+								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								Signing in...
+							{:else}
+								Sign In
+							{/if}
+						</Button>
+					{/snippet}
+				</loginForm.Subscribe>
 			</form>
 		</Card.Content>
 		<Card.Footer class="text-center">
-			<p class="text-sm">
+			<p class="text-sm text-muted-foreground">
 				Don't have an account?
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="/register" class="underline hover:text-primary">Register</a>
+				<a href="/register" class="font-medium text-primary underline hover:text-primary/80">
+					Sign up
+				</a>
 			</p>
 		</Card.Footer>
 	</Card.Root>

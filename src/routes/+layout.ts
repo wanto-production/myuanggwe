@@ -13,11 +13,23 @@ export const load = async ({ fetch, depends }) => {
     },
   })
 
-  const res = await fetch('/api/layout')
-  const data = await res.json() as Awaited<ReturnType<typeof client.layout.get>>['data']
+  try {
 
-  return {
-    queryClient,
-    ...data
+    const res = await fetch('/api/layout')
+    const data = await res.json() as Awaited<ReturnType<typeof client.layout.get>>['data']
+
+    return {
+      queryClient,
+      ...data
+    }
+  } catch {
+    return {
+      queryClient,
+
+      user: null,
+      session: null,
+      organizations: [],
+      activeOrg: null
+    }
   }
 }

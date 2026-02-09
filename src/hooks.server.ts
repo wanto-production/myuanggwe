@@ -13,7 +13,7 @@ export const handle = async ({ event, resolve }) => {
     event.locals.user = session.user;
   }
 
-  if (['/', '/dashboard', '/transactions', '/wallets', '/categories'].includes(event.url.pathname) && !event.locals.user) {
+  if (['/dashboard', '/transactions', '/wallets', '/categories'].includes(event.url.pathname) && !event.locals.user) {
     return redirect(302, '/login');
   }
 

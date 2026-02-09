@@ -14,16 +14,21 @@
 		User,
 		ChevronLeft,
 		Layers, // Tambahkan ini untuk icon kategori
-		LogOut
+		LogOut,
+
+		Loader2
+
 	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { authClient } from '$lib/auth-client';
-	import { invalidate } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import type { User as UserType } from 'better-auth';
 	import type { OrganizationType } from '$lib/server/db/schema';
 	import { sidebarToggle } from '$lib/stores';
 	import { page } from '$app/state';
+	import { createMutation } from '@tanstack/svelte-query';
+	import { toast } from 'svelte-sonner';
 
 	const menuItems = [
 		{ title: 'Dashboard', icon: ChartPie, href: '/dashboard' },
@@ -42,17 +47,25 @@
 
 	let isMinimized = $derived($sidebarToggle);
 	let isRoot = $derived(page.url.pathname === '/');
-  
+
 	async function handleSwitch(id: string | null) {
 		await authClient.organization.setActive({ organizationId: id });
 		isPopoverOpen = false;
 		await invalidate('layout:data');
 	}
 
-	async function handleLogout() {
-		await authClient.signOut();
-		await invalidate('layout:data');
-	}
+	const logoutMutation = createMutation(() => ({
+		mutationKey: ['logout'],
+		mutationFn: async () => {
+			await authClient.signOut();
+		},
+		onSuccess() {
+			goto('/login');
+		},
+		onError({ message }) {
+			toast.error(message);
+		}
+	}));
 </script>
 
 <aside
@@ -161,8 +174,17 @@
 
 	<div class="mt-auto border-t p-3">
 		{#if user}
-			<Button onclick={handleLogout} variant="destructive" class="w-full p-2">
-				<LogOut />
+			<Button
+				onclick={() => logoutMutation.mutate()}
+				variant="destructive"
+				class="w-full p-2"
+				disabled={logoutMutation.isPending}
+			>
+        {#if logoutMutation.isPending}
+          <Loader2/>
+        {:else}
+          <LogOut />
+        {/if}
 				{#if !isMinimized}
 					logout
 				{/if}
@@ -176,7 +198,7 @@
 		>
 			{#if !isMinimized}
 				<div class="flex flex-1 flex-col overflow-hidden text-left text-xs">
-          <span class="truncate font-bold text-foreground">{user.name}</span>
+					<span class="truncate font-bold text-foreground">{user.name}</span>
 					<span class="truncate text-muted-foreground">{user.email}</span>
 				</div>
 				<Button variant="ghost" size="icon" class="h-8 w-8">
