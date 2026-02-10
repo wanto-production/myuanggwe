@@ -8,7 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { loginSchema } from '$lib/schemas';
 	import { authClient } from '$lib/auth-client';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 
 	const loginForm = createForm(() => ({
 		defaultValues: {
@@ -22,11 +22,13 @@
 		onSubmit: async ({ value }) => {
 			await authClient.signIn.email(value, {
 				async onError(context) {
+					await invalidate('layout:data');
 					toast.error(context.error.message);
-        },
+				},
 				async onSuccess() {
+					await invalidate('layout:data');
 					toast.success('Login successful!');
-          goto('/dashboard')
+					goto('/dashboard');
 				}
 			});
 		}

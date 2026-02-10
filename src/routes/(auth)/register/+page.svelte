@@ -8,7 +8,7 @@
 	import { toast } from 'svelte-sonner';
 	import { registerSchema } from '$lib/schemas';
 	import { authClient } from '$lib/auth-client';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 
 	const registerForm = createForm(() => ({
 		defaultValues: {
@@ -30,9 +30,11 @@
 				},
 				{
 					async onError(context) {
+						await invalidate('layout:data');
 						toast.error(context.error.message);
 					},
 					async onSuccess() {
+						await invalidate('layout:data');
 						toast.success('Account created successfully!');
 						goto('/dashboard');
 					}
