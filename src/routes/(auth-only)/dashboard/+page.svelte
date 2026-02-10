@@ -8,8 +8,6 @@
 	import { createQuery } from '@tanstack/svelte-query';
 	import { client } from '$lib/eden';
 
-	let { data } = $props();
-
 	// Query dashboard data
 	const dashboardQuery = createQuery(() => ({
 		queryKey: ['dashboard'],
