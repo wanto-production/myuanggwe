@@ -60,9 +60,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<div>
 			<h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-			<p class="text-sm text-muted-foreground">
-				Financial overview for {data.activeOrg ? data.activeOrg.name : 'Personal'}
-			</p>
+			<p class="text-sm text-muted-foreground">Financial overview</p>
 		</div>
 		<Button href="/transactions" class="gap-2">
 			<Plus class="h-4 w-4" /> New Transaction
@@ -199,9 +197,7 @@
 							</div>
 						</div>
 					{:else}
-						<div class="py-10 text-center text-muted-foreground">
-							No transactions yet in this {data.activeOrg ? 'organization' : 'account'}.
-						</div>
+						<div class="py-10 text-center text-muted-foreground">No transactions yet in this.</div>
 					{/each}
 				</div>
 			{/if}
