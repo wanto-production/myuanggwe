@@ -117,13 +117,13 @@ const app = new Elysia({ prefix: '/api' })
           .where(and(contextQuery, gte(transactions.date, startOfMonth)))
           .groupBy(transactions.type),
 
-        // 3. Recent transactions
+        // 3. Recent transactions (last 5)
         db.query.transactions.findMany({
           where: contextQuery,
           with: {
             category: true,
             wallet: true,
-            user: true
+            toWallet: true  // Add toWallet for transfer transactions
           },
           orderBy: [desc(transactions.date)],
           limit: 5
@@ -143,6 +143,7 @@ const app = new Elysia({ prefix: '/api' })
         recentTransactions
       };
     } catch (error) {
+      console.error('Dashboard error:', error);
       return {
         walletList: [],
         totalBalance: 0,

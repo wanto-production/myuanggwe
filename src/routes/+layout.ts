@@ -1,10 +1,12 @@
 import { QueryClient } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-
+import gsap from "gsap";
 import { client } from '$lib/eden.js';
+import { ScrollTrigger } from 'gsap/all';
 
 export const load = async ({ fetch, depends }) => {
   depends("layout:data")
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -12,6 +14,8 @@ export const load = async ({ fetch, depends }) => {
       },
     },
   })
+
+  gsap.registerPlugin(ScrollTrigger)
 
   try {
 
