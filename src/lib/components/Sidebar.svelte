@@ -15,9 +15,7 @@
 		ChevronLeft,
 		Layers, // Tambahkan ini untuk icon kategori
 		LogOut,
-
 		Loader2
-
 	} from 'lucide-svelte';
 	import { cn } from '$lib/utils';
 	import { authClient } from '$lib/auth-client';

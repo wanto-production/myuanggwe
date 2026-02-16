@@ -74,7 +74,7 @@
 				<Header {user} />
 				<main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
 					{@render children()}
-				</main>
+        </main>
 			</div>
 		</div>
 	</Tooltip.Provider>

@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import { client } from '$lib/eden.js';
+import type { LayoutData } from '$lib/types.js';
 
 export const load = async ({ fetch, depends }) => {
   depends("layout:data")
@@ -13,11 +13,9 @@ export const load = async ({ fetch, depends }) => {
     },
   })
 
-
   try {
-
     const res = await fetch('/api/layout')
-    const data = await res.json() as Awaited<ReturnType<typeof client.layout.get>>['data']
+    const data = await res.json() as LayoutData
 
     return {
       queryClient,
@@ -26,7 +24,6 @@ export const load = async ({ fetch, depends }) => {
   } catch {
     return {
       queryClient,
-
       user: null,
       session: null,
       organizations: [],
