@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { auth } from '$lib/auth';
+import { auth } from '$lib/auth/auth';
 
 export const handle = async ({ event, resolve }) => {
   // Fetch current session from Better Auth
@@ -13,7 +13,7 @@ export const handle = async ({ event, resolve }) => {
     event.locals.user = session.user;
   }
 
-  if (['/dashboard', '/transactions', '/wallets', '/categories'].includes(event.url.pathname) && !event.locals.user) {
+  if (['/dashboard', '/transactions', '/wallets', '/categories','/organizations/invitations','organizations/manage'].includes(event.url.pathname) && !event.locals.user) {
     return redirect(302, '/login');
   }
 

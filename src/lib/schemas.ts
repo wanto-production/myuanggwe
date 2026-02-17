@@ -60,3 +60,9 @@ export const categorySchema = z.object({
   type: z.enum(['income', 'expense']),
   icon: z.string().default('Tag').optional() // Nama icon Lucide
 });
+
+// organizations
+export const organizationSchema = z.object({
+  name: z.string().min(2, 'Nama organisasi minimal 2 karakter'),
+  slug: z.string().min(2)
+});

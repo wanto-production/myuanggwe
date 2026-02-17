@@ -4,11 +4,11 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { loginSchema } from '$lib/schemas';
-	import { authClient } from '$lib/auth-client';
+	import { authClient } from '$lib/auth/auth-client';
 	import { goto, invalidate } from '$app/navigation';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	const loginForm = createForm(() => ({
 		defaultValues: {
@@ -122,7 +122,7 @@
 					{#snippet children(isSubmitting)}
 						<Button type="submit" class="w-full" disabled={isSubmitting}>
 							{#if isSubmitting}
-								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+								<Lucide name="Loader2" class="mr-2 h-4 w-4 animate-spin" />
 								Signing in...
 							{:else}
 								Sign In

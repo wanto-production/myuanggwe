@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { Elysia } from 'elysia';
-import { auth } from '$lib/auth';
+import { auth } from '$lib/auth/auth';
 import { categorySchema, walletSchema } from '$lib/schemas';
 import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'; // Tambahkan and & isNull
 import { db } from '$lib/server/db';
