@@ -6,7 +6,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import { cn } from '$lib/utils';
 	import { authClient } from '$lib/auth/auth-client';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import type { User as UserType } from 'better-auth';
 	import type { OrganizationType } from '$lib/server/db/schema';
@@ -41,10 +41,7 @@
 	const switchOrgsMutation = createMutation(() => ({
 		mutationKey: ['switch-from', activeOrg],
 		mutationFn: async (id: string | null) => {
-			// Invalidate React Query cache first
-			await invalidateFn(queryClient);
 
-			// Call API
 			const orgParam = id || 'personal'; // Use 'personal' keyword for null
 			const { data, error } = await client.changeOrgs({ id: orgParam }).put();
 
@@ -52,14 +49,13 @@
 				throw new Error('Failed to switch organization');
 			}
 
+      await invalidateFn(queryClient);
 			return data;
 		},
 		async onSuccess() {
-			isPopoverOpen = false;
+			await invalidate('layout:data')
+      isPopoverOpen = false;
 			toast.success('Organization switched!');
-
-			// Optional: Force reload page to refresh all data
-			// window.location.reload()
 		},
 		async onError(error: any) {
 			toast.error(error.message || 'Failed to switch organization');

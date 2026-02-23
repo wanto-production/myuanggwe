@@ -18,8 +18,8 @@
 		<div
 			class="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"
 		></div>
-
-		<div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+    
+    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
 			<div class="text-center">
 				<h1 class="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
 					Take control of your
