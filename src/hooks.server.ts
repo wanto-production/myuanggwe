@@ -1,7 +1,9 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
 import { auth } from '$lib/auth/auth';
+import { sequence } from '@sveltejs/kit/hooks';
+import { sveltekitCache } from '$lib/cache/sveltekit';
 
-export const handle = async ({ event, resolve }) => {
+export const authContext: Handle = async ({ event, resolve }) => {
   // Fetch current session from Better Auth
   const session = await auth.api.getSession({
     headers: event.request.headers
@@ -24,3 +26,11 @@ export const handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
+
+const cacheContext: Handle = async ({ event, resolve }) => {
+	// Add cache to locals
+	event.locals.cache = sveltekitCache
+	return resolve(event)
+}
+
+export const handle = sequence(authContext,cacheContext)

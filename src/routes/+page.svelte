@@ -1,16 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
-	import {
-		ArrowRight,
-		Wallet,
-		PieChart,
-		TrendingUp,
-		Shield,
-		Zap,
-		Users,
-		Check
-	} from 'lucide-svelte';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
 </script>
 
 <svelte:head>
@@ -25,14 +16,14 @@
 	<!-- Hero Section -->
 	<section class="relative overflow-hidden border-b">
 		<div
-			class="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
+			class="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]"
 		></div>
 
 		<div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
 			<div class="text-center">
 				<h1 class="mb-6 text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
 					Take control of your
-					<span class="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+					<span class="bg-linear-to-r from-primary to-blue-600 bg-clip-text text-transparent">
 						finances
 					</span>
 				</h1>
@@ -43,7 +34,7 @@
 				<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
 					<Button size="lg" class="gap-2" href="/register">
 						Get started for free
-						<ArrowRight class="h-4 w-4" />
+						<Lucide name="ArrowRight" class="h-4 w-4" />
 					</Button>
 					<Button size="lg" variant="outline" href="/login">Sign in</Button>
 				</div>
@@ -55,7 +46,7 @@
 			<!-- Hero Image/Preview -->
 			<div class="mt-16">
 				<div class="relative overflow-hidden rounded-xl border bg-card shadow-2xl">
-					<div class="aspect-video bg-gradient-to-br from-primary/10 to-blue-600/10 p-8">
+					<div class="aspect-video bg-linear-to-br from-primary/10 to-blue-600/10 p-8">
 						<div class="grid gap-4 md:grid-cols-3">
 							<Card.Root>
 								<Card.Header class="pb-3">
@@ -105,7 +96,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-primary/10 p-3">
-							<Wallet class="h-6 w-6 text-primary" />
+							<Lucide name="Wallet" class="h-6 w-6 text-primary" />
 						</div>
 						<Card.Title>Multiple Wallets</Card.Title>
 						<Card.Description>
@@ -118,7 +109,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-blue-600/10 p-3">
-							<PieChart class="h-6 w-6 text-blue-600" />
+							<Lucide name="PieChart" class="h-6 w-6 text-blue-600" />
 						</div>
 						<Card.Title>Visual Reports</Card.Title>
 						<Card.Description>
@@ -131,7 +122,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-green-600/10 p-3">
-							<TrendingUp class="h-6 w-6 text-green-600" />
+							<Lucide name="TrendingUp" class="h-6 w-6 text-green-600" />
 						</div>
 						<Card.Title>Budget Tracking</Card.Title>
 						<Card.Description>
@@ -144,7 +135,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-purple-600/10 p-3">
-							<Shield class="h-6 w-6 text-purple-600" />
+							<Lucide name="Shield" class="h-6 w-6 text-purple-600" />
 						</div>
 						<Card.Title>Secure & Private</Card.Title>
 						<Card.Description>
@@ -157,7 +148,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-orange-600/10 p-3">
-							<Zap class="h-6 w-6 text-orange-600" />
+							<Lucide name="Zap" class="h-6 w-6 text-orange-600" />
 						</div>
 						<Card.Title>Quick Entry</Card.Title>
 						<Card.Description>
@@ -170,7 +161,7 @@
 				<Card.Root>
 					<Card.Header>
 						<div class="mb-4 inline-flex rounded-lg bg-pink-600/10 p-3">
-							<Users class="h-6 w-6 text-pink-600" />
+							<Lucide name="Users" class="h-6 w-6 text-pink-600" />
 						</div>
 						<Card.Title>Team Collaboration</Card.Title>
 						<Card.Description>
@@ -208,15 +199,15 @@
 					<Card.Content class="space-y-4">
 						<ul class="space-y-2">
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Up to 3 wallets</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Unlimited transactions</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Basic reports</span>
 							</li>
 						</ul>
@@ -244,19 +235,19 @@
 					<Card.Content class="space-y-4">
 						<ul class="space-y-2">
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Unlimited wallets</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Advanced reports</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Budget alerts</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Priority support</span>
 							</li>
 						</ul>
@@ -277,19 +268,19 @@
 					<Card.Content class="space-y-4">
 						<ul class="space-y-2">
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Everything in Pro</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Team collaboration</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Role management</span>
 							</li>
 							<li class="flex items-center gap-2">
-								<Check class="h-4 w-4 text-green-600" />
+								<Lucide name="Check" class="h-4 w-4 text-green-600" />
 								<span class="text-sm">Dedicated support</span>
 							</li>
 						</ul>
@@ -303,7 +294,7 @@
 	<!-- CTA Section -->
 	<section class="py-20">
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-			<Card.Root class="bg-gradient-to-r from-primary to-blue-600 text-primary-foreground">
+			<Card.Root class="bg-linear-to-r from-primary to-blue-600 text-primary-foreground">
 				<Card.Header class="text-center">
 					<Card.Title class="mb-4 text-3xl sm:text-4xl">
 						Ready to take control of your finances?
@@ -314,7 +305,7 @@
 					<div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
 						<Button size="lg" variant="secondary" class="gap-2" href="/register">
 							Get started for free
-							<ArrowRight class="h-4 w-4" />
+							<Lucide name="ArrowRight" class="h-4 w-4" />
 						</Button>
 						<Button
 							size="lg"
