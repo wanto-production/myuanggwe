@@ -5,10 +5,8 @@
 	import * as Select from '$lib/components/ui/select';
 	import { toast } from 'svelte-sonner';
 	import { walletSchema } from '$lib/schemas.js';
-	import { createForm } from '@tanstack/svelte-form';
 	import { client } from '$lib/eden';
-	import { useQueryClient } from '@tanstack/svelte-query';
-	import SheetLayoutForm from '$lib/components/SheetLayoutForm.svelte';
+	import SheetLayoutForm from '$lib/components/utils/SheetLayoutForm.svelte';
 
 	let { wallet, open = $bindable(false) } = $props();
 
@@ -73,7 +71,7 @@
 							placeholder="BCA, Dana, dll"
 						/>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					{/snippet}
 				</walletsForm.Field>
@@ -96,7 +94,7 @@
 							min="0"
 						/>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					{/snippet}
 				</walletsForm.Field>

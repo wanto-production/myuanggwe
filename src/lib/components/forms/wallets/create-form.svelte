@@ -5,9 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { walletSchema } from '$lib/schemas.js';
-	import { createForm } from '@tanstack/svelte-form';
 	import { client } from '$lib/eden';
-	import { useQueryClient } from '@tanstack/svelte-query';
 
 	let { open = $bindable(false) } = $props();
 
@@ -63,7 +61,7 @@
 				/>
 				{#if field.state.meta.errors.length > 0}
 					<p class="text-sm font-medium text-destructive">
-						{field.state.meta.errors[0].message}
+						{field.state.meta.errors[0]?.message}
 					</p>
 				{/if}
 			{/snippet}
@@ -87,7 +85,7 @@
 				/>
 				{#if field.state.meta.errors.length > 0}
 					<p class="text-sm font-medium text-destructive">
-						{field.state.meta.errors[0].message}
+						{field.state.meta.errors[0]?.message}
 					</p>
 				{/if}
 			{/snippet}
@@ -117,7 +115,7 @@
 				</Select.Root>
 				{#if field.state.meta.errors.length > 0}
 					<p class="text-sm font-medium text-destructive">
-						{field.state.meta.errors[0].message}
+						{field.state.meta.errors[0]?.message}
 					</p>
 				{/if}
 			{/snippet}

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
@@ -7,25 +6,10 @@
 	import { Label } from '$lib/components/ui/label';
 	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { toast } from 'svelte-sonner';
-	import { authClient } from '$lib/auth/auth-client';
-	import { z } from 'zod';
+	import { inviteSchema } from '$lib/schemas';
 	import { invalidateAll } from '$app/navigation';
-
-	let { organizationId } = $props<{
-		organizationId: string;
-	}>();
-
-	// Fix 1: Remove required_error from enum
-	const inviteMemberSchema = z.object({
-		email: z.email('Invalid email address'),
-		role: z.enum(['member', 'admin'])
-	});
-
-	// Fix 2: Proper type for selected state
-	let selectedRole = $state<{ value: 'member' | 'admin'; label: string }>({
-		value: 'member',
-		label: 'Member'
-	});
+	import { createForm } from '@tanstack/svelte-form';
+	import { client } from '$lib/eden';
 
 	const inviteForm = createForm(() => ({
 		defaultValues: {
@@ -33,31 +17,18 @@
 			role: 'member' as 'member' | 'admin'
 		},
 		validators: {
-			onChange: inviteMemberSchema,
-			onSubmit: inviteMemberSchema
+			onChange: inviteSchema,
+			onSubmit: inviteSchema
 		},
 		onSubmit: async ({ value }) => {
-			try {
-				// Fix 6: Remove unused 'data' variable
-				const { error } = await authClient.organization.inviteMember({
-					email: value.email,
-					role: value.role,
-					organizationId: organizationId
-				});
+			const { data } = await client.organizations.invite.post(value);
 
-				if (error) {
-					toast.error(error.message || 'Failed to send invitation');
-					return;
-				}
-
-				toast.success(`Invitation sent to ${value.email}`);
+			if (data?.success) {
+				toast.success(data.message);
 				await invalidateAll();
 				inviteForm.reset();
-
-				// Reset select
-				selectedRole = { value: 'member', label: 'Member' };
-			} catch (err: any) {
-				toast.error(err.message || 'Failed to send invitation');
+			} else {
+				toast.error('Gagal mengirim undangan');
 			}
 		}
 	}));
@@ -110,18 +81,15 @@
 				{#snippet children(field)}
 					<div class="grid gap-2">
 						<Label for="role">Role</Label>
-						<!-- Fix 2-4: Proper Select binding -->
 						<Select.Root
+							type="single"
 							value={field.state.value}
 							onValueChange={(v: any) => {
-								if (v) {
-									selectedRole = v;
-									field.handleChange(v.value);
-								}
+								field.handleChange(v);
 							}}
 						>
 							<Select.Trigger id="role" class="w-full">
-								{field.state.value || 'Seelect role'}
+								{field.state.value.charAt(0).toUpperCase() + field.state.value.slice(1)}
 							</Select.Trigger>
 							<Select.Content>
 								<Select.Item value="member" label="Member">

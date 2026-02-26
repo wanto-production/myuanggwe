@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
-	import DropdownAction from '$lib/components/DropdownAction.svelte';
+	import DropdownAction from '$lib/components/utils/DropdownAction.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { MoreVertical } from 'lucide-svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { cn } from '$lib/utils';
-	import EditForm from './edit-form.svelte';
 	import { toast } from 'svelte-sonner';
 	import { client } from '$lib/eden';
-	import { createMutation, createQuery } from '@tanstack/svelte-query';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	type Transaction = {
 		id: string;
@@ -122,7 +120,9 @@
 {/snippet}
 
 {#if editingTransaction}
-	<EditForm bind:open={isEditSheetOpen} transaction={editingTransaction} {wallets} {categories} />
+	{#await import('$lib/components/forms/transactions/edit-form.svelte') then { default: EditForm }}
+		<EditForm bind:open={isEditSheetOpen} transaction={editingTransaction} {wallets} {categories} />
+	{/await}
 {/if}
 
 {#if isLoading}
@@ -192,7 +192,7 @@
 					>
 						{#snippet trigger({ props })}
 							<Button variant="outline" size="icon" {...props}>
-								<MoreVertical class="h-4 w-4" />
+								<Lucide name="MoreVertical" class="h-4 w-4" />
 							</Button>
 						{/snippet}
 					</DropdownAction>

@@ -189,11 +189,10 @@ export const transactions = sqliteTable('transactions', {
     .references(() => wallets.id, { onDelete: 'cascade' }),
   toWalletId: text('to_wallet_id').references(() => wallets.id, { onDelete: 'cascade' }),
   categoryId: text('category_id')
-    .notNull()
-    .references(() => categories.id),
+    .references(() => categories.id, { onDelete: 'set null' }),
   userId: text('user_id')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   organizationId: text('organization_id').references(() => organization.id, {
     onDelete: 'cascade'
   }),

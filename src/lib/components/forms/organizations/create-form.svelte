@@ -1,21 +1,22 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Loader2 } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { organizationSchema } from '$lib/schemas';
 	import { authClient } from '$lib/auth/auth-client';
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
 	import { invalidateFn } from '$lib/@functions';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
+	import { client } from '$lib/eden';
+	import { createForm } from '@tanstack/svelte-form';
 	import { useQueryClient } from '@tanstack/svelte-query';
 
 	const queryClient = useQueryClient();
 	const session = authClient.useSession();
 
-	const loginForm = createForm(() => ({
+	const orgForm = createForm(() => ({
 		defaultValues: {
 			name: '',
 			slug: ''
@@ -25,43 +26,29 @@
 			onSubmit: organizationSchema
 		},
 		onSubmit: async ({ value }) => {
-			await invalidateFn(queryClient);
-			await authClient.organization.create(
-				{
-					name: value.name,
-					slug: value.slug, // required
-					userId: $session.data?.user.id,
-					keepCurrentActiveOrganization: false
-				},
-				{
-					async onError(context) {
-						toast.error(context.error.message);
-					},
-					async onSuccess() {
-						toast.success('change organizations!');
-						goto('/dashboard');
-					}
-				}
-			);
+			const { data } = await client.orgs.create.post(value);
+
+			if (data?.success) {
+				toast.success(data.message!);
+				goto('/dashboard');
+				await invalidate('layout:data');
+				await invalidateFn(queryClient);
+			} else {
+				toast.error('Gagal membuat organisasi');
+			}
 		}
 	}));
 </script>
 
 <svelte:head>
-	<title>NewOrgs - MyUangGwe | Financial Management App</title>
-	<meta name="description" content="Create an organizations to collaborate" />
-	<meta
-		name="keywords"
-		content="create organizations, financial account, financial management, financial dashboard"
-	/>
+	<title>New Orgs - MyUangGwe | Financial Management App</title>
+	<meta name="description" content="Create an organization to collaborate" />
 </svelte:head>
 
 <Card.Root class="w-full max-w-sm">
 	<Card.Header>
-		<Card.Title class="text-2xl">Create organizations</Card.Title>
-		<Card.Description
-			>Enter your name,slug organizations below to create your organization.</Card.Description
-		>
+		<Card.Title class="text-2xl">Create Organization</Card.Title>
+		<Card.Description>Enter your name and slug below to create your organization.</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<form
@@ -69,17 +56,17 @@
 			onsubmit={(e) => {
 				e.preventDefault();
 				e.stopPropagation();
-				loginForm.handleSubmit();
+				orgForm.handleSubmit();
 			}}
 		>
-			<loginForm.Field name="name">
+			<orgForm.Field name="name">
 				{#snippet children(field)}
 					<div class="grid gap-2">
 						<Label for="name">Name</Label>
 						<Input
 							id="name"
-							type="name"
-							placeholder="name's.org"
+							type="text"
+							placeholder="My Organization"
 							value={field.state.value}
 							onblur={field.handleBlur}
 							oninput={(e) => {
@@ -93,21 +80,16 @@
 						{/if}
 					</div>
 				{/snippet}
-			</loginForm.Field>
+			</orgForm.Field>
 
-			<loginForm.Field name="slug">
+			<orgForm.Field name="slug">
 				{#snippet children(field)}
 					<div class="grid gap-2">
-						<div class="flex items-center justify-between">
-							<Label for="slug">Slug</Label>
-							<a href="/forgot-password" class="text-xs underline hover:text-primary">
-								Forgot password?
-							</a>
-						</div>
+						<Label for="slug">Slug</Label>
 						<Input
 							id="slug"
 							type="text"
-							placeholder="••••••••"
+							placeholder="my-org"
 							value={field.state.value}
 							onblur={field.handleBlur}
 							oninput={(e) => {
@@ -121,21 +103,21 @@
 						{/if}
 					</div>
 				{/snippet}
-			</loginForm.Field>
+			</orgForm.Field>
 
 			<!-- Submit Button -->
-			<loginForm.Subscribe selector={(state) => state.isSubmitting}>
+			<orgForm.Subscribe selector={(state) => state.isSubmitting}>
 				{#snippet children(isSubmitting)}
 					<Button type="submit" class="w-full" disabled={$session.isPending || isSubmitting}>
 						{#if isSubmitting}
-							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+							<Lucide name="Loader2" class="mr-2 h-4 w-4 animate-spin" />
 							Creating...
 						{:else}
 							Create
 						{/if}
 					</Button>
 				{/snippet}
-			</loginForm.Subscribe>
+			</orgForm.Subscribe>
 		</form>
 	</Card.Content>
 </Card.Root>

@@ -64,5 +64,14 @@ export const categorySchema = z.object({
 // organizations
 export const organizationSchema = z.object({
   name: z.string().min(2, 'Nama organisasi minimal 2 karakter'),
-  slug: z.string().min(2)
+  slug: z.string().min(2, 'Slug minimal 2 karakter')
+});
+
+export const inviteSchema = z.object({
+  email: z.email('Email tidak valid'),
+  role: z.enum(['admin', 'member']).default('member')
+});
+
+export const joinSchema = z.object({
+  invitationId: z.string().min(1, 'ID Undangan diperlukan')
 });

@@ -1,12 +1,12 @@
 <script lang="ts">
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
-	import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, History } from 'lucide-svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import { cn } from '$lib/utils';
 	import { formatIDR, formatDate } from '$lib/composables/currency.js';
 	import { createQuery } from '@tanstack/svelte-query';
 	import { client } from '$lib/eden';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	// Query dashboard data
 	const dashboardQuery = createQuery(() => ({
@@ -63,7 +63,7 @@
 			<p class="text-sm text-muted-foreground">Financial overview</p>
 		</div>
 		<Button href="/transactions" class="gap-2">
-			<Plus class="h-4 w-4" /> New Transaction
+			<Lucide name="Plus" class="h-4 w-4" /> New Transaction
 		</Button>
 	</div>
 
@@ -89,7 +89,7 @@
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between pb-2">
 					<Card.Title class="text-sm font-medium">Total Balance</Card.Title>
-					<Wallet class="h-4 w-4 text-muted-foreground" />
+					<Lucide name="Wallet" class="h-4 w-4 text-muted-foreground" />
 				</Card.Header>
 				<Card.Content>
 					<div class="text-2xl font-bold">{formatIDR(dashboardData.totalBalance)}</div>
@@ -103,7 +103,7 @@
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between pb-2">
 					<Card.Title class="text-sm font-medium">Income</Card.Title>
-					<ArrowDownLeft class="h-4 w-4 text-green-500" />
+					<Lucide name="ArrowDownLeft" class="h-4 w-4 text-green-500" />
 				</Card.Header>
 				<Card.Content>
 					<div class="text-2xl font-bold text-green-600">
@@ -117,7 +117,7 @@
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between pb-2">
 					<Card.Title class="text-sm font-medium">Expenses</Card.Title>
-					<ArrowUpRight class="h-4 w-4 text-red-500" />
+					<Lucide name="ArrowUpRight" class="h-4 w-4 text-red-500" />
 				</Card.Header>
 				<Card.Content>
 					<div class="text-2xl font-bold text-red-600">
@@ -136,7 +136,7 @@
 				<Card.Title>Recent Transactions</Card.Title>
 				<Card.Description>Latest activity from this account.</Card.Description>
 			</div>
-			<History class="h-4 w-4 text-muted-foreground" />
+			<Lucide name="History" class="h-4 w-4 text-muted-foreground" />
 		</Card.Header>
 		<Card.Content>
 			{#if isLoading}
@@ -168,9 +168,9 @@
 								)}
 							>
 								{#if tx.type === 'income'}
-									<ArrowDownLeft class="h-4 w-4" />
+									<Lucide name="ArrowDownLeft" class="h-4 w-4" />
 								{:else if tx.type === 'expense'}
-									<ArrowUpRight class="h-4 w-4" />
+									<Lucide name="ArrowUpRight" class="h-4 w-4" />
 								{:else}
 									<span class="text-sm">💰</span>
 								{/if}

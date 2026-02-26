@@ -3,8 +3,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { Plus } from 'lucide-svelte';
-	import TransactionsList from '$lib/components/transactions/transactions-list.svelte';
-	import TransactionsForm from '$lib/components/transactions/transactions-form.svelte';
+	import TransactionsList from '$lib/components/tables/transactions/transactions-list.svelte';
+	import TransactionsForm from '$lib/components/forms/transactions/create-form.svelte';
 </script>
 
 <svelte:head>

@@ -2,8 +2,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { Banknote, Plus, MoreVertical } from 'lucide-svelte';
-	import WalletsForm from '$lib/components/wallets/wallets-form.svelte';
-	import WalletsList from '$lib/components/wallets/wallets-list.svelte';
+	import WalletsForm from '$lib/components/forms/wallets/create-form.svelte';
+	import WalletsList from '$lib/components/tables/wallets/wallets-list.svelte';
 
 	let { data } = $props();
 

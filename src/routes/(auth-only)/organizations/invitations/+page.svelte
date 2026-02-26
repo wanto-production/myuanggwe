@@ -1,20 +1,16 @@
 <script lang="ts">
-	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Button } from '$lib/components/ui/button';
+	import { createQuery } from '@tanstack/svelte-query';
 	import * as Card from '$lib/components/ui/card';
 	import * as Table from '$lib/components/ui/table';
 	import { Input } from '$lib/components/ui/input';
 	import { Badge } from '$lib/components/ui/badge';
 	import Lucide from '$lib/components/utils/Lucide.svelte';
-	import { toast } from 'svelte-sonner';
 	import { authClient } from '$lib/auth/auth-client';
-	import { invalidateFn } from '$lib/@functions';
 
 	let { data } = $props();
 
 	let searchQuery = $state('');
 
-	const queryClient = useQueryClient();
 	// Get ALL invitations for current user
 	const invitationsQuery = createQuery(() => ({
 		queryKey: ['my-invitations'],
@@ -39,49 +35,6 @@
 			return inv.organizationId.toLowerCase().includes(searchQuery.toLowerCase());
 		})
 	);
-
-	const acceptMutation = createMutation(() => ({
-		mutationFn: async (invitationId: string) => {
-			const { data, error } = await authClient.organization.acceptInvitation({
-				invitationId
-			});
-
-			if (error) {
-				throw new Error(error.message || 'Failed to accept invitation');
-			}
-
-			return data;
-		},
-		onSuccess: () => {
-			toast.success('Invitation accepted!');
-			invitationsQuery.refetch();
-			invalidateFn(queryClient);
-		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to accept invitation');
-		}
-	}));
-
-	const declineMutation = createMutation(() => ({
-		mutationFn: async (invitationId: string) => {
-			const { data, error } = await authClient.organization.rejectInvitation({
-				invitationId
-			});
-
-			if (error) {
-				throw new Error(error.message || 'Failed to decline invitation');
-			}
-
-			return data;
-		},
-		onSuccess: () => {
-			toast.success('Invitation declined');
-			invitationsQuery.refetch();
-		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to decline invitation');
-		}
-	}));
 </script>
 
 <svelte:head>
@@ -155,7 +108,7 @@
 							<Table.Row>
 								<Table.Head>Invitation ID</Table.Head>
 								<Table.Head>Email</Table.Head>
-                <Table.Head>Role</Table.Head>
+								<Table.Head>Role</Table.Head>
 								<Table.Head>Date</Table.Head>
 								<Table.Head>Expires</Table.Head>
 								<Table.Head>Status</Table.Head>
@@ -176,7 +129,6 @@
 											</span>
 										</div>
 									</Table.Cell>
-
 
 									<Table.Cell class="font-mono text-sm">
 										<div class="flex items-center gap-2">
@@ -218,7 +170,6 @@
 											{invitation.status}
 										</Badge>
 									</Table.Cell>
-
 								</Table.Row>
 							{/each}
 						</Table.Body>

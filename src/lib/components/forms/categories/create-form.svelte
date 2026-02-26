@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
 	import * as Select from '$lib/components/ui/select';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -7,7 +6,8 @@
 	import { categorySchema } from '$lib/schemas.js';
 	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
-	import { invalidate } from '$app/navigation';
+  
+	const queryClient = useQueryClient();
 
 	let { open = $bindable() } = $props();
 
@@ -23,7 +23,7 @@
 		},
 		onSubmit: async ({ value }) => {
 			const res = await client.categories.create.post(value);
-			invalidate('categories:data');
+			queryClient.invalidateQueries({ queryKey: ['category'] });
 			if (res.data?.message) toast.message(res.data.message);
 			open = false;
 			form.reset();
@@ -66,7 +66,7 @@
 			{placeholder}
 		/>
 		{#if field.state.meta.errors.length}
-			<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+			<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 		{/if}
 	</div>
 {/snippet}
@@ -109,7 +109,7 @@
 					</Select.Content>
 				</Select.Root>
 				{#if field.state.meta.errors.length}
-					<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+					<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 				{/if}
 			</div>
 		{/snippet}
@@ -139,7 +139,7 @@
 					</Select.Content>
 				</Select.Root>
 				{#if field.state.meta.errors.length}
-					<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+					<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 				{/if}
 			</div>
 		{/snippet}

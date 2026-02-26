@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
@@ -8,14 +7,13 @@
 	import { transactionSchema } from '$lib/schemas';
 	import { toast } from 'svelte-sonner';
 	import { client } from '$lib/eden';
-	import { createQuery, useQueryClient } from '@tanstack/svelte-query';
 
 	type TransactionType = 'income' | 'expense' | 'transfer';
 
 	let { open = $bindable(false) } = $props();
 
 	const queryClient = useQueryClient();
-
+  
 	// Query wallets
 	const walletsQuery = createQuery(() => ({
 		queryKey: ['wallets'],
@@ -158,7 +156,7 @@
 						min="0"
 					/>
 					{#if field.state.meta.errors.length > 0}
-						<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+						<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 					{/if}
 				</div>
 			{/snippet}
@@ -190,7 +188,7 @@
 							</Select.Content>
 						</Select.Root>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					</div>
 				{/snippet}
@@ -219,7 +217,7 @@
 								</Select.Content>
 							</Select.Root>
 							{#if field.state.meta.errors.length > 0}
-								<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+								<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 							{/if}
 						</div>
 					{/snippet}
@@ -249,7 +247,7 @@
 								</Select.Content>
 							</Select.Root>
 							{#if field.state.meta.errors.length > 0}
-								<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+								<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 							{/if}
 						</div>
 					{/snippet}

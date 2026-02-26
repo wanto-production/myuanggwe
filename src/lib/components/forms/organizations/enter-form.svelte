@@ -7,43 +7,33 @@
 	import { Label } from '$lib/components/ui/label';
 	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { toast } from 'svelte-sonner';
-	import { goto } from '$app/navigation';
-	import { z } from 'zod';
-	import { authClient } from '$lib/auth/auth-client';
+	import { goto, invalidate } from '$app/navigation';
+	import { joinSchema } from '$lib/schemas';
 	import { invalidateFn } from '$lib/@functions';
 	import { useQueryClient } from '@tanstack/svelte-query';
-  
-  const queryClient = useQueryClient()
+	import { client } from '$lib/eden';
 
-	const joinOrgSchema = z.object({
-		inviteCode: z.string().min(6, 'Invalid invitation code')
-	});
+	const queryClient = useQueryClient();
 
 	const joinOrgForm = createForm(() => ({
 		defaultValues: {
-			inviteCode: ''
+			invitationId: ''
 		},
 		validators: {
-			onChange: joinOrgSchema,
-			onSubmit: joinOrgSchema
+			onChange: joinSchema,
+			onSubmit: joinSchema
 		},
 		onSubmit: async ({ value }) => {
-			await authClient.organization.acceptInvitation(
-				{
-					invitationId: value.inviteCode
-				},
-				{
-					async onSuccess() {
-						toast.success('Successfully joined organization!');
+			const { data } = await client.organizations['accept-invitation'].post(value);
 
-						await invalidateFn(queryClient);
-						goto('/dashboard');
-					},
-					onError({ error }) {
-						toast.error(error.message || 'Failed to join organization');
-					}
-				}
-			);
+			if (data?.success) {
+				toast.success(data.message);
+				await invalidate('layout:data');
+				await invalidateFn(queryClient);
+				goto('/dashboard');
+			} else {
+				toast.error('Gagal bergabung dengan organisasi');
+			}
 		}
 	}));
 </script>
@@ -51,7 +41,7 @@
 <Card.Root class="w-full max-w-md">
 	<Card.Header>
 		<Card.Title class="text-2xl">Join Organization</Card.Title>
-		<Card.Description>Enter your invitation code to join</Card.Description>
+		<Card.Description>Enter your invitation ID to join</Card.Description>
 	</Card.Header>
 
 	<Card.Content>
@@ -62,14 +52,14 @@
 				joinOrgForm.handleSubmit();
 			}}
 		>
-			<joinOrgForm.Field name="inviteCode">
+			<joinOrgForm.Field name="invitationId">
 				{#snippet children(field)}
 					<div class="grid gap-2">
-						<Label for="inviteCode">Invitation Code</Label>
+						<Label for="invitationId">Invitation ID</Label>
 						<Input
-							id="inviteCode"
+							id="invitationId"
 							type="text"
-							placeholder="ABC123XYZ"
+							placeholder="Your invitation ID"
 							value={field.state.value}
 							onblur={field.handleBlur}
 							oninput={(e) => {
@@ -77,7 +67,7 @@
 								field.handleChange(target.value);
 							}}
 							required
-							class="text-center text-lg tracking-widest"
+							class="text-center"
 						/>
 						{#if field.state.meta.errors.length > 0}
 							<p class="text-sm text-destructive">
@@ -107,7 +97,7 @@
 	<Card.Footer class="flex flex-col gap-4">
 		<Separator />
 		<div class="text-center">
-			<p class="text-sm text-muted-foreground">Don't have an invitation code?</p>
+			<p class="text-sm text-muted-foreground">Don't have an invitation ID?</p>
 			<a href="/organizations/create" class="text-sm font-medium text-primary underline">
 				Create your own organization
 			</a>

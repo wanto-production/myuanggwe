@@ -2,8 +2,8 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Plus } from 'lucide-svelte';
-	import CategoriesForm from '$lib/components/categories/categories-form.svelte';
-	import CategoriesList from '$lib/components/categories/categories-list.svelte';
+	import CategoriesForm from '$lib/components/forms/categories/create-form.svelte';
+	import CategoriesList from '$lib/components/tables/categories/categories-list.svelte';
 
 	let open_dialog = $state(false);
 </script>

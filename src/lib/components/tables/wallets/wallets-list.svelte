@@ -2,12 +2,11 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Banknote, CreditCard, Landmark, MoreVertical } from 'lucide-svelte';
-	import EditForm from '$lib/components/wallets/edit-form.svelte';
-	import { createMutation, createQuery } from '@tanstack/svelte-query';
+	import EditForm from '$lib/components/forms/wallets/edit-form.svelte';
 	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import DropdownAction from '$lib/components/DropdownAction.svelte';
+	import DropdownAction from '$lib/components/utils/DropdownAction.svelte';
 
 	let { data } = $props();
 

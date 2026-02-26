@@ -1,0 +1,24 @@
+{
+  "globals": {
+    "afterUpdate": true,
+    "beforeUpdate": true,
+    "createEventDispatcher": true,
+    "createForm": true,
+    "createMutation": true,
+    "createQuery": true,
+    "derived": true,
+    "formatDate": true,
+    "formatIDR": true,
+    "get": true,
+    "getAllContexts": true,
+    "getContext": true,
+    "hasContext": true,
+    "onDestroy": true,
+    "onMount": true,
+    "readable": true,
+    "setContext": true,
+    "tick": true,
+    "useQueryClient": true,
+    "writable": true
+  }
+}

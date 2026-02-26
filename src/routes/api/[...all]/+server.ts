@@ -1,7 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { Elysia, status } from 'elysia'
 import { auth } from '$lib/auth/auth'
-import { categorySchema, walletSchema, transactionSchema } from '$lib/schemas'
+import { categorySchema, walletSchema, transactionSchema, organizationSchema, inviteSchema, joinSchema } from '$lib/schemas'
 import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'
 import { db } from '$lib/server/db'
 import {
@@ -117,42 +117,83 @@ const app = new Elysia({ prefix: '/api' })
   )
 
   // =========================================================================================
-  // Change Orgs
-  // =========================================================================================
-  .put('/changeOrgs/:id', async (c) => {
-    const { user } = c
-    const orgIdParam = c.params.id
+  // Orgs
+  // ========================================================================================= 
+  .group('/orgs', (app) => {
+    return app
+      .put('/change/:id', async (c) => {
+        const { user } = c
+        const orgIdParam = c.params.id
 
-    try {
-      // Convert 'personal' keyword to null
-      const targetOrgId = orgIdParam === 'personal' ? null : orgIdParam
+        try {
+          // Convert 'personal' keyword to null
+          const targetOrgId = orgIdParam === 'personal' ? null : orgIdParam
 
-      // Switch organization
-      await auth.api.setActiveOrganization({
-        body: {
-          organizationId: targetOrgId
-        },
-        headers: c.request.headers as any
+          // Switch organization
+          await auth.api.setActiveOrganization({
+            body: {
+              organizationId: targetOrgId
+            },
+            headers: c.request.headers
+          })
+
+          // Invalidate all user cache
+          await invalidateUserCache(user.id, targetOrgId)
+
+          return {
+            success: true,
+            message: targetOrgId
+              ? 'Organization switched successfully!'
+              : 'Switched to personal account!',
+            organizationId: targetOrgId
+          }
+        } catch (e) {
+          console.error('Change org error:', e)
+          return {
+            success: false,
+            error: e instanceof Error ? e.message : 'Failed to switch organization'
+          }
+        }
+      }, { auth: true })
+
+      .post('/create', async (c) => {
+        try {
+          const res = await auth.api.createOrganization({
+            body: {
+              name: c.body.name,
+              slug: c.body.slug, // required
+              userId: c.session.userId,
+              keepCurrentActiveOrganization: false
+            },
+            asResponse: true,
+          })
+
+          const data = await res.json()
+
+          await auth.api.setActiveOrganization({
+            body: {
+              organizationId: data.id as string
+            },
+            headers: c.request.headers
+          })
+
+          invalidateUserCache(c.user.id, data.id)
+
+          return {
+            success: true,
+            message: `create new organizations called ${c.body.name}!`,
+          }
+        } catch (e) {
+          return {
+            success: false,
+            error: e instanceof Error ? e.message : 'Failed to create organization'
+          }
+        }
+      }, {
+        auth: true,
+        body: organizationSchema
       })
-
-      // Invalidate all user cache
-      await invalidateUserCache(user.id, targetOrgId)
-
-      return {
-        success: true,
-        message: targetOrgId
-          ? 'Organization switched successfully!'
-          : 'Switched to personal account!',
-        organizationId: targetOrgId
-      }
-    } catch (e) {
-      console.error('Change org error:', e)
-      return {
-        success: false,
-        error: e instanceof Error ? e.message : 'Failed to switch organization'
-      }
-    }
-  }, { auth: true })
+  })
 
   // =========================================================================================
   // Dashboard
@@ -306,14 +347,22 @@ const app = new Elysia({ prefix: '/api' })
           const { user, activeOrg, body, params } = c
 
           try {
-            await db
+            const walletContextQuery = activeOrg
+              ? eq(wallets.organizationId, activeOrg.id)
+              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+
+            const result = await db
               .update(wallets)
               .set({
                 name: body.name,
                 type: body.type,
                 balance: body.balance
               })
-              .where(eq(wallets.id, params.id))
+              .where(and(eq(wallets.id, params.id), walletContextQuery))
+
+            if (result.rowsAffected === 0) {
+              return { success: false, message: 'Wallet not found or access denied' }
+            }
 
             await invalidateUserCache(user!.id, activeOrg?.id)
 
@@ -330,7 +379,17 @@ const app = new Elysia({ prefix: '/api' })
         '/erase/:id',
         async ({ params, user, activeOrg }) => {
           try {
-            await db.delete(wallets).where(eq(wallets.id, params.id))
+            const walletContextQuery = activeOrg
+              ? eq(wallets.organizationId, activeOrg.id)
+              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+
+            const result = await db
+              .delete(wallets)
+              .where(and(eq(wallets.id, params.id), walletContextQuery))
+
+            if (result.rowsAffected === 0) {
+              return { success: false, message: 'Wallet not found or access denied' }
+            }
 
             await invalidateUserCache(user.id, activeOrg?.id)
 
@@ -392,12 +451,16 @@ const app = new Elysia({ prefix: '/api' })
           const orgId = currentSession?.activeOrganizationId || null
 
           try {
+            const walletContextQuery = orgId
+              ? eq(wallets.organizationId, orgId)
+              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+
             await db.transaction(async (tx) => {
               // 1. Ambil data dompet pengirim (Wallet A)
               const walletSource = await tx.query.wallets.findFirst({
-                where: eq(wallets.id, walletId)
+                where: and(eq(wallets.id, walletId), walletContextQuery)
               })
-              if (!walletSource) throw new Error('Source wallet not found')
+              if (!walletSource) throw new Error('Source wallet not found or access denied')
 
               // 2. CEK SALDO: Pastikan saldo cukup untuk transfer/pengeluaran
               if (type !== 'income' && walletSource.balance < amount) {
@@ -412,25 +475,25 @@ const app = new Elysia({ prefix: '/api' })
                 await tx
                   .update(wallets)
                   .set({ balance: walletSource.balance - amount })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
 
                 // Update Dompet Penerima (Tambah Saldo)
                 const walletDest = await tx.query.wallets.findFirst({
-                  where: eq(wallets.id, toWalletId)
+                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
                 })
-                if (!walletDest) throw new Error('Destination wallet not found')
+                if (!walletDest) throw new Error('Destination wallet not found or access denied')
 
                 await tx
                   .update(wallets)
                   .set({ balance: walletDest.balance + amount })
-                  .where(eq(wallets.id, toWalletId))
+                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
               } else {
                 // Update Dompet Normal (Income/Expense)
                 const change = type === 'income' ? amount : -amount
                 await tx
                   .update(wallets)
                   .set({ balance: walletSource.balance + change })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
               }
 
               // 4. INSERT RECORD TRANSAKSI
@@ -483,6 +546,10 @@ const app = new Elysia({ prefix: '/api' })
           const orgId = currentSession?.activeOrganizationId || null
 
           try {
+            const walletContextQuery = orgId
+              ? eq(wallets.organizationId, orgId)
+              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+
             await db.transaction(async (tx) => {
               // 1. Ambil transaksi lama
               const oldTransaction = await tx.query.transactions.findFirst({
@@ -501,44 +568,44 @@ const app = new Elysia({ prefix: '/api' })
 
               // Dapatkan saldo dompet lama saat ini untuk diperbarui
               const currentOldWalletSource = await tx.query.wallets.findFirst({
-                where: eq(wallets.id, oldWalletId)
+                where: and(eq(wallets.id, oldWalletId), walletContextQuery)
               })
-              if (!currentOldWalletSource) throw new Error('Old source wallet not found')
+              if (!currentOldWalletSource) throw new Error('Old source wallet not found or access denied')
 
               // Revert saldo dompet sumber lama
               if (oldType === 'income') {
                 await tx
                   .update(wallets)
                   .set({ balance: currentOldWalletSource.balance - oldAmount })
-                  .where(eq(wallets.id, oldWalletId))
+                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
               } else if (oldType === 'expense') {
                 await tx
                   .update(wallets)
                   .set({ balance: currentOldWalletSource.balance + oldAmount })
-                  .where(eq(wallets.id, oldWalletId))
+                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
               } else if (oldType === 'transfer' && oldToWalletId) {
                 const currentOldWalletDestination = await tx.query.wallets.findFirst({
-                  where: eq(wallets.id, oldToWalletId)
+                  where: and(eq(wallets.id, oldToWalletId), walletContextQuery)
                 })
                 if (!currentOldWalletDestination)
-                  throw new Error('Old destination wallet not found')
+                  throw new Error('Old destination wallet not found or access denied')
 
                 await tx
                   .update(wallets)
                   .set({ balance: currentOldWalletSource.balance + oldAmount })
-                  .where(eq(wallets.id, oldWalletId))
+                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
                 await tx
                   .update(wallets)
                   .set({ balance: currentOldWalletDestination.balance - oldAmount })
-                  .where(eq(wallets.id, oldToWalletId))
+                  .where(and(eq(wallets.id, oldToWalletId), walletContextQuery))
               }
 
               // 3. Terapkan efek transaksi baru pada saldo dompet
               // PENTING: Ambil ulang saldo wallet setelah di-revert
               const newWalletSource = await tx.query.wallets.findFirst({
-                where: eq(wallets.id, walletId)
+                where: and(eq(wallets.id, walletId), walletContextQuery)
               })
-              if (!newWalletSource) throw new Error('New source wallet not found')
+              if (!newWalletSource) throw new Error('New source wallet not found or access denied')
 
               // Cek saldo untuk transaksi baru (jika bukan income)
               if (type !== 'income' && newWalletSource.balance < amount) {
@@ -549,24 +616,24 @@ const app = new Elysia({ prefix: '/api' })
                 if (!toWalletId) throw new Error('Destination wallet required for transfer')
 
                 const newWalletDestination = await tx.query.wallets.findFirst({
-                  where: eq(wallets.id, toWalletId)
+                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
                 })
-                if (!newWalletDestination) throw new Error('New destination wallet not found')
+                if (!newWalletDestination) throw new Error('New destination wallet not found or access denied')
 
                 await tx
                   .update(wallets)
                   .set({ balance: newWalletSource.balance - amount })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
                 await tx
                   .update(wallets)
                   .set({ balance: newWalletDestination.balance + amount })
-                  .where(eq(wallets.id, toWalletId))
+                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
               } else {
                 const change = type === 'income' ? amount : -amount
                 await tx
                   .update(wallets)
                   .set({ balance: newWalletSource.balance + change })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
               }
 
               // 4. Perbarui record transaksi
@@ -622,6 +689,10 @@ const app = new Elysia({ prefix: '/api' })
           const orgId = currentSession?.activeOrganizationId
 
           try {
+            const walletContextQuery = orgId
+              ? eq(wallets.organizationId, orgId)
+              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+
             await db.transaction(async (tx) => {
               // 1. Ambil data transaksi yang akan dihapus
               const transaction = await tx.query.transactions.findFirst({
@@ -636,11 +707,11 @@ const app = new Elysia({ prefix: '/api' })
 
               // 2. Ambil data wallet sumber
               const walletSource = await tx.query.wallets.findFirst({
-                where: eq(wallets.id, walletId)
+                where: and(eq(wallets.id, walletId), walletContextQuery)
               })
 
               if (!walletSource) {
-                throw new Error('Source wallet not found')
+                throw new Error('Source wallet not found or access denied')
               }
 
               // 3. Revert saldo berdasarkan tipe transaksi
@@ -649,34 +720,34 @@ const app = new Elysia({ prefix: '/api' })
                 await tx
                   .update(wallets)
                   .set({ balance: walletSource.balance - amount })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
               } else if (type === 'expense') {
                 // Jika expense, tambah saldo (karena pengeluaran dibatalkan)
                 await tx
                   .update(wallets)
                   .set({ balance: walletSource.balance + amount })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
               } else if (type === 'transfer' && toWalletId) {
                 // Jika transfer, kembalikan saldo ke wallet sumber dan kurangi dari wallet tujuan
                 const walletDestination = await tx.query.wallets.findFirst({
-                  where: eq(wallets.id, toWalletId)
+                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
                 })
 
                 if (!walletDestination) {
-                  throw new Error('Destination wallet not found')
+                  throw new Error('Destination wallet not found or access denied')
                 }
 
                 // Kembalikan uang ke wallet sumber
                 await tx
                   .update(wallets)
                   .set({ balance: walletSource.balance + amount })
-                  .where(eq(wallets.id, walletId))
+                  .where(and(eq(wallets.id, walletId), walletContextQuery))
 
                 // Kurangi uang dari wallet tujuan
                 await tx
                   .update(wallets)
                   .set({ balance: walletDestination.balance - amount })
-                  .where(eq(wallets.id, toWalletId))
+                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
               }
 
               // 4. Hapus transaksi
@@ -794,6 +865,184 @@ const app = new Elysia({ prefix: '/api' })
           }
         },
         { auth: true, body: categorySchema }
+      )
+  })
+
+  // =========================================================================================
+  // Organizations Management
+  // =========================================================================================
+  .group('/manage-orgs', (app) => {
+    return app
+      .get('/', async ({ activeOrg, user }) => {
+        if (!activeOrg) return { org: null, members: [] }
+
+        const members = await db.query.member.findMany({
+          where: eq(member.organizationId, activeOrg.id),
+          with: { user: true }
+        })
+
+        const currentUserMember = members.find((m) => m.userId === user.id)
+
+        return {
+          org: activeOrg,
+          members,
+          currentUserRole: currentUserMember?.role || 'member'
+        }
+      }, { auth: true })
+
+      .delete('/members/:id', async ({ params, activeOrg, user, status }) => {
+        if (!activeOrg) return status(400)
+
+        // Check if current user is owner
+        const requester = await db.query.member.findFirst({
+          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+        })
+
+        if (requester?.role !== 'owner') return status(403)
+
+        await db.delete(member).where(eq(member.id, params.id))
+        await invalidateUserCache(user.id, activeOrg.id)
+
+        return { message: 'Member removed' }
+      }, { auth: true })
+
+      .put('/members/:id/role', async ({ params, body, activeOrg, user, status }) => {
+        const { role } = body as { role: string }
+        if (!activeOrg) return status(400)
+
+        // Check if current user is owner
+        const requester = await db.query.member.findFirst({
+          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+        })
+
+        if (requester?.role !== 'owner') return status(403)
+
+        await db.update(member).set({ role }).where(eq(member.id, params.id))
+        return { message: 'Role updated' }
+      }, { auth: true })
+
+      .delete('/', async ({ activeOrg, user, status, request }) => {
+        if (!activeOrg) return status(400)
+
+        const requester = await db.query.member.findFirst({
+          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+        })
+
+        if (requester?.role !== 'owner') return status(403)
+
+        try {
+          await db.transaction(async (tx) => {
+            // Delete all associated application data
+            await tx.delete(transactions).where(eq(transactions.organizationId, activeOrg.id))
+            await tx.delete(wallets).where(eq(wallets.organizationId, activeOrg.id))
+            await tx.delete(categories).where(eq(categories.organizationId, activeOrg.id))
+            await tx.delete(member).where(eq(member.organizationId, activeOrg.id))
+
+            // Delete the organization itself using Better Auth API
+            await auth.api.deleteOrganization({
+              body: {
+                organizationId: activeOrg.id
+              },
+              headers: request.headers as any
+            })
+
+            // Reset session to personal account after deletion
+            await auth.api.setActiveOrganization({
+              body: {
+                organizationId: null
+              },
+              headers: request.headers as any
+            })
+          })
+
+          // Invalidate cache for the user
+          await invalidateUserCache(user.id, activeOrg.id)
+
+          return { success: true, message: 'Organization and all associated data deleted successfully' }
+        } catch (e) {
+          console.error('Delete organization error:', e)
+          return {
+            success: false,
+            message: e instanceof Error ? e.message : 'Failed to delete organization'
+          }
+        }
+      }, { auth: true })
+  })
+
+  // =========================================================================================
+  // Organizations
+  // =========================================================================================
+  .group('/organizations', (app) => {
+    return app
+      .post(
+        '/create',
+        async (c) => {
+          const { user, body } = c
+          try {
+            const org = await auth.api.createOrganization({
+              body: {
+                name: body.name,
+                slug: body.slug,
+                userId: user.id
+              },
+              headers: c.request.headers as any
+            })
+
+            await invalidateUserCache(user.id)
+            return { success: true, organization: org }
+          } catch (e) {
+            console.error('Create org error:', e)
+            return { success: false, message: e instanceof Error ? e.message : 'Gagal membuat organisasi' }
+          }
+        },
+        { auth: true, body: organizationSchema }
+      )
+
+      .post(
+        '/invite',
+        async (c) => {
+          const { body, activeOrg } = c
+          if (!activeOrg) return { success: false, message: 'Harus memilih organisasi aktif' }
+
+          try {
+            await auth.api.createInvitation({
+              body: {
+                email: body.email,
+                role: body.role,
+                organizationId: activeOrg.id
+              },
+              headers: c.request.headers as any
+            })
+
+            return { success: true, message: 'Undangan berhasil dikirim' }
+          } catch (e) {
+            console.error('Invite error:', e)
+            return { success: false, message: e instanceof Error ? e.message : 'Gagal mengirim undangan' }
+          }
+        },
+        { auth: true, body: inviteSchema }
+      )
+
+      .post(
+        '/accept-invitation',
+        async (c) => {
+          const { user, body } = c
+          try {
+            await auth.api.acceptInvitation({
+              body: {
+                invitationId: body.invitationId
+              },
+              headers: c.request.headers as any
+            })
+
+            await invalidateUserCache(user.id)
+            return { success: true, message: 'Berhasil bergabung dengan organisasi' }
+          } catch (e) {
+            console.error('Accept invitation error:', e)
+            return { success: false, message: e instanceof Error ? e.message : 'Gagal menerima undangan' }
+          }
+        },
+        { auth: true, body: joinSchema }
       )
   })
 

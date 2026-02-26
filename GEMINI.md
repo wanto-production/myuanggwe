@@ -1,74 +1,159 @@
-# GEMINI.md
+# MyUangGwe - Personal & Business Finance Management Application
 
-## Project Overview
+---
 
-This is a SvelteKit web application for personal and business financial management called "MyUangGwe". It allows users to track expenses, income, and manage budgets. The application uses SvelteKit for the frontend and ElysiaJS for the backend API. Authentication is handled by `better-auth`, and the database is managed with Drizzle ORM and Turso. The UI is built with Tailwind CSS and various Svelte components.
+## 📋 Project Overview
 
-**Key Technologies:**
+**MyUangGwe** is a modern, full-stack finance management application built with SvelteKit 5 and Svelte 5 Runes. It provides a robust platform for tracking personal and business finances, featuring multi-organization support, real-time transaction management with atomic balance updates, and a sophisticated server-side caching layer.
 
-*   **Package manager**: Bun
-*   **Framework:** [SvelteKit](https://svelte.dev/llms-full.txt)
-*   **Backend API:** ElysiaJS
-*   **Database:** Turso (via Drizzle ORM)
-*   **Authentication:** [better-auth](https://www.better-auth.com/llms.txt)
-*   **Styling:** Tailwind CSS
-*   **UI Components:** [Shadcn Svelte](https://www.shadcn-svelte.com/llms.txt).
-*   **Testing:** Playwright for end-to-end testing.
+---
 
-**Architecture:**
+## 🏗️ Tech Stack
 
-*   The application is structured as a monorepo with the SvelteKit frontend and ElysiaJS backend in the same project.
-*   The `src/lib` directory contains shared code, including Svelte components, authentication logic, and database schemas.
-*   The `src/routes` directory defines the application's pages and API endpoints.
-*   The `src/routes/api/[...all]/+server.ts` file is the entry point for the ElysiaJS backend, which handles all API requests.
-*   The database schema is defined in `src/lib/server/db/schema.ts` and is managed with Drizzle ORM.
-*   Authentication is implemented using the `better-auth` library, with the configuration in `src/lib/auth.ts`.
+### **Frontend**
+- **Framework**: SvelteKit 5 (Svelte 5 with Runes: `$state`, `$derived`, `$effect`, `snippet`)
+- **State Management**: 
+  - **TanStack Query v6**: For server state synchronization, caching, and optimistic updates.
+  - **Svelte Runes**: For reactive client-side state.
+- **Forms**: **TanStack Form v1.28** + **Zod** for schema-based validation.
+- **Styling**: **Tailwind CSS v4** (Modern, high-performance styling engine).
+- **UI Components**: shadcn-svelte (Radix UI primitives via bits-ui).
+- **Animations**: GSAP (GreenSock Animation Platform) and `tw-animate-css`.
+- **Icons**: Lucide Svelte (via custom wrapper).
 
-## Building and Running
+### **Backend**
+- **API Framework**: **Elysia.js v1.4+** (High-performance, Bun-powered, end-to-end type safety).
+- **API Client**: **Eden Treaty** (Typesafe communication between SvelteKit and Elysia).
+- **Database**: **Turso (LibSQL/SQLite)** - Edge-ready distributed database.
+- **ORM**: **Drizzle ORM v0.45+** (Typesafe SQL builder with relations support).
+- **Authentication**: **Better Auth v1.4+** (Session-based, with Organization and Username plugins).
+- **Cache**: **Upstash Redis** (Serverless Redis for high-speed data caching).
 
-**Development:**
+### **Infrastructure**
+- **Runtime**: Bun
+- **Deployment**: Vercel (SvelteKit Adapter)
+- **Database Hosting**: Turso
+- **Cache Hosting**: Upstash
 
-To start the development server, run:
+---
 
-```sh
+## 📂 Project Structure
+
+```
+myuanggwe/
+├── src/
+│   ├── lib/
+│   │   ├── auth/                      # Better Auth configuration (Server & Client)
+│   │   ├── cache/                     # Upstash Redis cache (Server & SvelteKit locals)
+│   │   ├── components/                # shadcn-svelte, Layout, and Feature components
+│   │   │   ├── ui/                    # Base UI components (Radix)
+│   │   │   ├── layout/                # Sidebar, Header, and Navigation
+│   │   │   ├── forms/                 # TanStack Form implementations
+│   │   │   ├── tables/                # Data listing components
+│   │   │   └── utils/                 # Lucide icons, loading states
+│   │   ├── server/
+│   │   │   └── db/
+│   │   │       ├── schema.ts          # Drizzle schema with relations and types
+│   │   │       └── index.ts           # LibSQL/Drizzle client initialization
+│   │   ├── eden.ts                    # Eden Treaty client for typesafe API calls
+│   │   ├── schemas.ts                 # Shared Zod validation schemas
+│   │   ├── stores.ts                  # Client-side Svelte state
+│   │   └── @functions.ts              # Global helper functions
+│   ├── routes/
+│   │   ├── (auth)/                    # Auth routes (Login, Register)
+│   │   ├── (auth-only)/               # Protected app routes
+│   │   │   ├── dashboard/             # Financial overview
+│   │   │   ├── transactions/          # Transaction management
+│   │   │   ├── wallets/               # Wallet management
+│   │   │   ├── categories/            # Category management
+│   │   │   └── organizations/         # Org management & Invitations
+│   │   ├── api/
+│   │   │   └── [...all]/
+│   │   │       └── +server.ts         # Elysia API (The core backend logic)
+│   │   ├── +page.svelte               # Landing page
+│   │   └── +layout.svelte             # Root layout with TanStack Query provider
+│   ├── hooks.server.ts                # Server hooks for Auth, Cache, and Protection
+│   ├── app.d.ts                       # Global types and SvelteKit Locals
+│   └── app.css                        # Tailwind CSS 4 entry point
+├── drizzle/                           # Database migration files
+├── static/                            # Static assets
+└── .env                               # Environment variables
+```
+
+---
+
+## 🗄️ Database Schema & Data Logic
+
+### **Core Features**
+- **Atomic Transactions**: Wallet balances are updated within Drizzle database transactions to ensure consistency during Income, Expense, and Transfer operations.
+- **Transfers**: Built-in support for moving funds between wallets (Wallet Source → Wallet Destination).
+- **Row-Level Scoping**: Data is scoped by `userId` and optionally `organizationId`. Personal data has `organizationId = NULL`.
+- **Hybrid Timestamps**: Uses `timestamp_ms` for Auth tables and unix `timestamp` for App tables.
+
+### **Tables**
+- **User/Session/Account**: Better Auth managed tables.
+- **Organization/Member/Invitation**: Multi-tenant support.
+- **Wallets**: Financial accounts (Cash, Bank, Credit Card).
+- **Categories**: Income/Expense categorization with icons.
+- **Transactions**: Ledger records linked to Wallets and Categories.
+
+---
+
+## 🚀 Key Features & Data Flow
+
+### **1. Real-Time Server Caching**
+- Powered by **Upstash Redis**.
+- **`withBackendCache`**: A wrapper that handles Cache-Hit/Miss logic with automatic logging.
+- **Vite-Style Logging**: Beautifully formatted terminal logs for cache operations (HIT, MISS, SET, INVALIDATE).
+- **Smart Invalidation**: Mutations in Wallets, Transactions, or Categories trigger a targeted invalidation of related cache keys (Layout, Dashboard, etc.).
+
+### **2. Multi-Organization Switcher**
+- Users can switch between "Personal" and "Organization" contexts.
+- Context is stored in `session.activeOrganizationId`.
+- API endpoint `/api/changeOrgs/:id` handles the switch and clears relevant cache.
+
+### **3. Typesafe API with Elysia + Eden**
+- **Elysia Macros**: Simplified auth checks using `.macro({ auth: true })`.
+- **Eden Treaty**: Provides full TypeScript intellisense for API calls in Svelte components.
+- **Middleware**: `userData` middleware derives organization context for all API requests.
+
+### **4. Modern UI/UX**
+- **Svelte 5 Runes**: Leveraging the latest reactivity model for high performance.
+- **Tailwind 4**: Native CSS-first approach with better performance and simplified config.
+- **GSAP**: Smooth, professional animations for dashboard transitions.
+
+---
+
+## 🔧 API Reference (Elysia)
+
+- **Layout**: `GET /api/layout` - Combined user, session, and organization data.
+- **Context**: `PUT /api/changeOrgs/:id` - Switch active context (Personal/Org).
+- **Dashboard**: `GET /api/dashboard` - Summarized stats and recent activity.
+- **Wallets**: CRUD under `/api/wallets`.
+- **Transactions**: CRUD under `/api/transactions` (Handles complex balance logic).
+- **Categories**: CRUD under `/api/categories`.
+
+---
+
+## 🛠️ Commands
+
+```bash
+# Development
 bun run dev
+
+# Database
+bun run db:push      # Push schema changes to Turso
+bun run db:generate  # Generate migrations
+bun run db:migrate   # Apply migrations
+bun run db:studio    # Open Drizzle Studio
+
+# Check & Lint
+bun run check        # Svelte-check
+bun run lint         # ESLint & Prettier
 ```
 
-**Building for Production:**
+---
 
-To create a production build, run:
-
-```sh
-bun run build
-```
-
-You can preview the production build with:
-
-```sh
-bun run preview
-```
-
-**Testing:**
-
-To run the end-to-end tests, use:
-
-```sh
-bun run test:e2e
-```
-
-**Database:**
-
-The project uses Drizzle ORM for database management. Here are some useful commands:
-
-*   `bun run db:push`: Push schema changes to the database.
-*   `bun run d run db:generate`: Generate database migration files.
-*   `bun run d run db:migrate`: Apply generated migrations to the database.
-*   `bun run d run db:studio`: Open the Drizzle DB studio.
-
-## Development Conventions
-
-*   **Code Style:** The project uses Prettier for code formatting and ESLint for linting. Run `npm run format` to format the code and `npm run lint` to check for linting errors.
-*   **Components:** UI components are located in `src/lib/components`. Reusable UI components are in `src/lib/components/ui`.
-*   **API:** The backend API is built with ElysiaJS and is located in `src/routes/api/[...all]/+server.ts`. Follow the existing patterns for adding new routes and functionality.
-*   **Database:** The database schema is defined in `src/lib/server/db/schema.ts`. When making changes to the schema, be sure to generate and apply migrations.
-*   **Authentication:** Authentication is handled by `better-auth`. The configuration is in `src/lib/auth.ts`. The `src/hooks.server.ts` file contains middleware for protecting routes.
+**Status**: Active Development  
+**Version**: 1.0.0 (Svelte 5 Stable)  
+**Last Updated**: February 2026

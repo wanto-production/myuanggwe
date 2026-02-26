@@ -1,10 +1,8 @@
 <script lang="ts">
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
-	import CreateFrom from '$lib/components/organizations/create-from.svelte';
-	import EnterForm from '$lib/components/organizations/enter-form.svelte';
-	import InviteForm from '$lib/components/organizations/invite-form.svelte';
-
-  let { data } = $props()
+	import CreateForm from '$lib/components/forms/organizations/create-form.svelte';
+	import EnterForm from '$lib/components/forms/organizations/enter-form.svelte';
+	import InviteForm from '$lib/components/forms/organizations/invite-form.svelte';
 </script>
 
 <svelte:head>
@@ -21,16 +19,16 @@
 		<Tabs.List>
 			<Tabs.Trigger value="create">Create</Tabs.Trigger>
 			<Tabs.Trigger value="enter">Enter</Tabs.Trigger>
-		  <Tabs.Trigger disabled={!data.activeOrg} value="invite">Invite</Tabs.Trigger>
-    </Tabs.List>
+			<Tabs.Trigger disabled={!data.activeOrg} value="invite">Invite</Tabs.Trigger>
+		</Tabs.List>
 		<Tabs.Content value="create">
-		  <CreateFrom/>
-    </Tabs.Content>
+			<CreateForm />
+		</Tabs.Content>
 		<Tabs.Content value="enter">
-		  <EnterForm/>
-    </Tabs.Content>
-	  <Tabs.Content value="invite">
-      <InviteForm organizationId={data.activeOrg?.id!}/>
-    </Tabs.Content>
-  </Tabs.Root>
+			<EnterForm />
+		</Tabs.Content>
+		<Tabs.Content value="invite">
+			<InviteForm />
+		</Tabs.Content>
+	</Tabs.Root>
 </div>

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { Button } from '$lib/components/ui/button';
-	import type { Snippet } from 'svelte';
 
 	interface Props {
 		label: string;

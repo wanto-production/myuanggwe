@@ -12,10 +12,9 @@
 	import type { OrganizationType } from '$lib/server/db/schema';
 	import { sidebarToggle } from '$lib/stores';
 	import { page } from '$app/state';
-	import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { toast } from 'svelte-sonner';
 	import { invalidateFn } from '$lib/@functions';
-	import Lucide from './utils/Lucide.svelte';
+	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { client } from '$lib/eden';
 
 	const queryClient = useQueryClient();
@@ -43,7 +42,7 @@
 		mutationFn: async (id: string | null) => {
 
 			const orgParam = id || 'personal'; // Use 'personal' keyword for null
-			const { data, error } = await client.changeOrgs({ id: orgParam }).put();
+			const { data, error } = await client.orgs.change({ id: orgParam }).put();
 
 			if (error) {
 				throw new Error('Failed to switch organization');
@@ -212,7 +211,7 @@
 					</a>
 
 					<a
-						href={!activeOrg ? '#' : '/organizations/invitations'}
+						href="/organizations/invitations"
 						class={cn(
 							'flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-all hover:bg-accent',
 							page.url.pathname === '/organizations/invitations' && 'bg-accent'
@@ -223,6 +222,21 @@
 							<span>Invitations</span>
 						</div>
 					</a>
+
+					{#if activeOrg}
+						<a
+							href="/organizations/manage"
+							class={cn(
+								'flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-all hover:bg-accent',
+								page.url.pathname === '/organizations/manage' && 'bg-accent'
+							)}
+						>
+							<div class="flex items-center gap-2">
+								<Lucide name="ShieldCheck" size={16} />
+								<span>Management</span>
+							</div>
+						</a>
+					{/if}
 				</Collapsible.Content>
 			</Collapsible.Root>
 		{:else}

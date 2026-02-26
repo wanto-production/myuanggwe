@@ -1,15 +1,15 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Select from '$lib/components/ui/select';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import SheetLayoutForm from '$lib/components/SheetLayoutForm.svelte';
+	import SheetLayoutForm from '$lib/components/utils/SheetLayoutForm.svelte';
 	import { transactionSchema } from '$lib/schemas';
 	import { toast } from 'svelte-sonner';
 	import { client } from '$lib/eden';
-	import { invalidate } from '$app/navigation';
+
+  const queryClient = useQueryClient()
 
 	type TransactionType = 'income' | 'expense' | 'transfer';
 
@@ -86,8 +86,11 @@
 
 				if (res.data?.message) {
 					toast.success(res.data.message);
-					await invalidate('transactions:data');
-					open = false;
+					
+					await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+					await queryClient.invalidateQueries({ queryKey: ['wallets'] });
+					
+          open = false;
 				} else if (res.error) {
 					toast.error('Terjadi kesalahan');
 				}
@@ -171,7 +174,7 @@
 							min="0"
 						/>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					</div>
 				{/snippet}
@@ -202,7 +205,7 @@
 								</Select.Content>
 							</Select.Root>
 							{#if field.state.meta.errors.length > 0}
-								<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
+								<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 							{/if}
 						</div>
 					{/snippet}
@@ -231,7 +234,7 @@
 									</Select.Content>
 								</Select.Root>
 								{#if field.state.meta.errors.length > 0}
-									<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
+									<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 								{/if}
 							</div>
 						{/snippet}
@@ -260,7 +263,7 @@
 									</Select.Content>
 								</Select.Root>
 								{#if field.state.meta.errors.length > 0}
-									<p class="text-xs text-destructive">{field.state.meta.errors[0].message}</p>
+									<p class="text-xs text-destructive">{field.state.meta.errors[0]?.message}</p>
 								{/if}
 							</div>
 						{/snippet}

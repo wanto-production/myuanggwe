@@ -5,10 +5,8 @@
 	import * as Select from '$lib/components/ui/select';
 	import { toast } from 'svelte-sonner';
 	import { categorySchema } from '$lib/schemas.js';
-	import { createForm } from '@tanstack/svelte-form';
 	import { client } from '$lib/eden';
-	import { useQueryClient } from '@tanstack/svelte-query';
-	import SheetLayoutForm from '$lib/components/SheetLayoutForm.svelte';
+	import SheetLayoutForm from '$lib/components/utils/SheetLayoutForm.svelte';
 
 	let { category, open = $bindable(false) } = $props();
 
@@ -26,7 +24,7 @@
 		},
 		onSubmit: async ({ value }) => {
 			const res = await client.categories.edit({ id: category.id }).put(value);
-			await queryClient.invalidateQueries({ queryKey: ['categories'] });
+			await queryClient.invalidateQueries({ queryKey: ['category'] });
 			if (res.data?.message) {
 				toast.success(res.data.message);
 				open = false;
@@ -84,7 +82,7 @@
 							placeholder="Makanan, Transportasi, dll"
 						/>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					{/snippet}
 				</categoryForm.Field>
@@ -117,7 +115,7 @@
 							</Select.Content>
 						</Select.Root>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					{/snippet}
 				</categoryForm.Field>
@@ -150,7 +148,7 @@
 							</Select.Content>
 						</Select.Root>
 						{#if field.state.meta.errors.length > 0}
-							<p class="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+							<p class="text-sm text-destructive">{field.state.meta.errors[0]?.message}</p>
 						{/if}
 					{/snippet}
 				</categoryForm.Field>
