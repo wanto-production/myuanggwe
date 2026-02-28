@@ -1,7 +1,4 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Button } from '$lib/components/ui/button';
-	import { Plus } from 'lucide-svelte';
 	import CategoriesForm from '$lib/components/forms/categories/create-form.svelte';
 	import CategoriesList from '$lib/components/tables/categories/categories-list.svelte';
 
@@ -31,7 +28,7 @@
 			<Dialog.Trigger>
 				{#snippet child({ props })}
 					<Button {...props} class="gap-2">
-						<Plus class="h-4 w-4" /> Tambah Kategori
+						<Lucide name="Plus" class="h-4 w-4" /> Tambah Kategori
 					</Button>
 				{/snippet}
 			</Dialog.Trigger>

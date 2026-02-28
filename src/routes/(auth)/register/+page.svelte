@@ -1,14 +1,8 @@
 <script lang="ts">
-	import { createForm } from '@tanstack/svelte-form';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { registerSchema } from '$lib/schemas';
 	import { authClient } from '$lib/auth/auth-client';
 	import { goto, invalidate } from '$app/navigation';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	const registerForm = createForm(() => ({
 		defaultValues: {

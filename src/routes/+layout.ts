@@ -1,6 +1,5 @@
 import { QueryClient } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import type { LayoutData } from '$lib/types.js';
 
 export const load = async ({ fetch, depends }) => {
   depends("layout:data")

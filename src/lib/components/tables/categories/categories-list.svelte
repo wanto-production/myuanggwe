@@ -1,12 +1,6 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import DropdownAction from '$lib/components/utils/DropdownAction.svelte';
-	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
 	import EditForm from '$lib/components/forms/categories/edit-form.svelte';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	let open_sheet = $state(false);
 

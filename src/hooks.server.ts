@@ -1,7 +1,6 @@
 import { redirect, type Handle } from '@sveltejs/kit';
-import { auth } from '$lib/auth/auth';
 import { sequence } from '@sveltejs/kit/hooks';
-import { sveltekitCache } from '$lib/cache/sveltekit';
+import { sveltekitCache } from '$lib/redis/sveltekit';
 
 export const authContext: Handle = async ({ event, resolve }) => {
   // Fetch current session from Better Auth

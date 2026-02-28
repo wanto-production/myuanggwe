@@ -43,37 +43,42 @@
 myuanggwe/
 ├── src/
 │   ├── lib/
-│   │   ├── auth/                      # Better Auth configuration (Server & Client)
-│   │   ├── cache/                     # Upstash Redis cache (Server & SvelteKit locals)
-│   │   ├── components/                # shadcn-svelte, Layout, and Feature components
-│   │   │   ├── ui/                    # Base UI components (Radix)
-│   │   │   ├── layout/                # Sidebar, Header, and Navigation
-│   │   │   ├── forms/                 # TanStack Form implementations
+│   │   ├── @types/                    # Global TypeScript interfaces
+│   │   ├── assets/                    # Static UI assets (SVG, images)
+│   │   ├── auth/                      # Better Auth config (auth.ts & auth-client.ts)
+│   │   ├── components/                # UI and Feature components
+│   │   │   ├── forms/                 # CRUD forms for all features
+│   │   │   ├── layout/                # Sidebar, Header, Navigation
 │   │   │   ├── tables/                # Data listing components
-│   │   │   └── utils/                 # Lucide icons, loading states
-│   │   ├── server/
-│   │   │   └── db/
-│   │   │       ├── schema.ts          # Drizzle schema with relations and types
-│   │   │       └── index.ts           # LibSQL/Drizzle client initialization
-│   │   ├── eden.ts                    # Eden Treaty client for typesafe API calls
-│   │   ├── schemas.ts                 # Shared Zod validation schemas
-│   │   ├── stores.ts                  # Client-side Svelte state
-│   │   └── @functions.ts              # Global helper functions
+│   │   │   ├── ui/                    # Base UI (Radix/shadcn-svelte)
+│   │   │   └── utils/                 # Icons and Shared Layout Wrappers
+│   │   ├── composables/               # Shared logic (currency, eden, queries)
+│   │   ├── eden.ts                    # Eden Treaty client initialization
+│   │   ├── hooks/                     # Custom Svelte hooks
+│   │   ├── redis/                     # Upstash Redis (Server & SvelteKit locals)
+│   │   ├── schemas.ts                 # Zod validation schemas
+│   │   ├── server/                    # Backend server-only logic
+│   │   │   └── db/                    # Drizzle ORM (schema.ts & index.ts)
+│   │   ├── stores.ts                  # Reactive Svelte stores
+│   │   └── utils.ts                   # UI utility functions (cn)
 │   ├── routes/
 │   │   ├── (auth)/                    # Auth routes (Login, Register)
 │   │   ├── (auth-only)/               # Protected app routes
-│   │   │   ├── dashboard/             # Financial overview
-│   │   │   ├── transactions/          # Transaction management
-│   │   │   ├── wallets/               # Wallet management
 │   │   │   ├── categories/            # Category management
-│   │   │   └── organizations/         # Org management & Invitations
+│   │   │   ├── dashboard/             # Financial overview
+│   │   │   ├── organizations/         # Org management
+│   │   │   │   ├── invitations/       # Invite members
+│   │   │   │   └── manage/            # Member management
+│   │   │   ├── transactions/          # Transaction management
+│   │   │   └── wallets/               # Wallet management
 │   │   ├── api/
 │   │   │   └── [...all]/
-│   │   │       └── +server.ts         # Elysia API (The core backend logic)
-│   │   ├── +page.svelte               # Landing page
-│   │   └── +layout.svelte             # Root layout with TanStack Query provider
-│   ├── hooks.server.ts                # Server hooks for Auth, Cache, and Protection
+│   │   │       └── +server.ts         # Elysia API (Core backend logic)
+│   │   ├── +layout.svelte             # Root layout with Query provider
+│   │   └── +page.svelte               # Landing page
+│   ├── types/                         # Auto-generated Unplugin types (d.ts)
 │   ├── app.d.ts                       # Global types and SvelteKit Locals
+│   ├── hooks.server.ts                # Server hooks for Auth and Redis
 │   └── app.css                        # Tailwind CSS 4 entry point
 ├── drizzle/                           # Database migration files
 ├── static/                            # Static assets
@@ -121,6 +126,12 @@ myuanggwe/
 - **Svelte 5 Runes**: Leveraging the latest reactivity model for high performance.
 - **Tailwind 4**: Native CSS-first approach with better performance and simplified config.
 - **GSAP**: Smooth, professional animations for dashboard transitions.
+
+### **5. DX & Automation (Unplugin)**
+- **`unplugin-auto-import`**: Automatically imports Svelte lifecycle hooks (`$state`, `$derived`, etc.), TanStack Query hooks, and custom composables.
+  - **Namespace Mapping**: Multi-part UI components (e.g., `Card`, `Dialog`, `Select`) are automatically mapped as namespaces, allowing usage like `<Card.Root>` without manual imports.
+- **`unplugin-svelte-components`**: Automatically discovers and registers base UI components from `src/lib/components/ui` and `src/lib/components/utils`.
+- **Type Safety**: Both plugins generate d.ts files in `src/types/` to maintain full TypeScript intellisense.
 
 ---
 

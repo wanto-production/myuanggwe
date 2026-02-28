@@ -1,12 +1,5 @@
 <script lang="ts">
-	import { ArrowUpRight, ArrowDownLeft } from 'lucide-svelte';
-	import DropdownAction from '$lib/components/utils/DropdownAction.svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { cn } from '$lib/utils';
 	import { toast } from 'svelte-sonner';
-	import { client } from '$lib/eden';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 
 	type Transaction = {
 		id: string;
@@ -145,9 +138,9 @@
 						)}
 					>
 						{#if tx.type === 'income'}
-							<ArrowDownLeft class="h-4 w-4" />
+							<Lucide name="ArrowDownLeft" class="h-4 w-4" />
 						{:else if tx.type === 'expense'}
-							<ArrowUpRight class="h-4 w-4" />
+							<Lucide name="ArrowUpRight" class="h-4 w-4" />
 						{:else}
 							💰
 						{/if}

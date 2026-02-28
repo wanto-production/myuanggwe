@@ -1,14 +1,6 @@
 <script lang="ts">
-	import { client } from '$lib/eden';
-	import * as Card from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
-	import * as Table from '$lib/components/ui/table';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidate } from '$app/navigation';
-	import { invalidateFn } from '$lib/@functions';
 
 	const queryClient = useQueryClient();
 

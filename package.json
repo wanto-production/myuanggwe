@@ -68,6 +68,7 @@
     "lucide-svelte": "^0.562.0",
     "sveltekit-superforms": "^2.29.1",
     "unplugin-auto-import": "^21.0.0",
+    "unplugin-svelte-components": "^0.3.1",
     "zod": "^4.3.5"
   }
 }

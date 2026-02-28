@@ -1,8 +1,5 @@
 <!-- src/routes/(auth-only)/transactions/+page.svelte -->
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import { Plus } from 'lucide-svelte';
 	import TransactionsList from '$lib/components/tables/transactions/transactions-list.svelte';
 	import TransactionsForm from '$lib/components/forms/transactions/create-form.svelte';
 </script>
@@ -28,7 +25,7 @@
 
 		<Dialog.Root>
 			<Dialog.Trigger class={buttonVariants({ variant: 'default' })}>
-				<Plus class="mr-2 h-4 w-4" /> Catat Transaksi
+				<Lucide name="Plus" class="mr-2 h-4 w-4" /> Catat Transaksi
 			</Dialog.Trigger>
 
 			<Dialog.Content class="sm:max-w-106.25">

@@ -1,22 +1,16 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Banknote, CreditCard, Landmark, MoreVertical } from 'lucide-svelte';
 	import EditForm from '$lib/components/forms/wallets/edit-form.svelte';
-	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
-	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
-	import DropdownAction from '$lib/components/utils/DropdownAction.svelte';
 
 	let { data } = $props();
 
 	let sheet_open = $state(false);
 
 	const icons = {
-		bank: Landmark,
-		credit_card: CreditCard,
-		cash: Banknote
-	};
+		bank: 'Landmark',
+		credit_card: 'CreditCard',
+		cash: 'Banknote'
+	} as const;
 
 	const deleteWalletMutation = createMutation(() => ({
 		mutationKey: ['delete-wallet'],
@@ -50,13 +44,13 @@
 	{#if !walletsQuery.isPending}
 		{#each walletsQuery.data?.walletList as wallet (wallet.id)}
 			<EditForm bind:open={sheet_open} {wallet} />
-			{@const Icon = icons[wallet.type as keyof typeof icons] || Banknote}
+			{@const iconName = icons[wallet.type as keyof typeof icons] || 'Banknote'}
 			<Card.Root>
 				<Card.Header class="flex flex-row items-center justify-between pb-2">
 					<Card.Title class="text-sm font-medium">{wallet.name}</Card.Title>
 					<div class="flex items-center gap-2">
 						<i class="rounded-md border-2 p-2">
-							<Icon class="h-4 w-4" />
+							<Lucide name={iconName} class="h-4 w-4" />
 						</i>
 						<DropdownAction
 							onDelete={() => deleteWalletMutation.mutate({ id: wallet.id })}
@@ -64,7 +58,7 @@
 						>
 							{#snippet trigger({ props })}
 								<Button variant="outline" size="icon" {...props}>
-									<MoreVertical class="h-4 w-4" />
+									<Lucide name="MoreVertical" class="h-4 w-4" />
 								</Button>
 							{/snippet}
 						</DropdownAction>

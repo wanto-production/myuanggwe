@@ -1,12 +1,6 @@
 <script lang="ts">
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import * as Select from '$lib/components/ui/select';
 	import { toast } from 'svelte-sonner';
 	import { categorySchema } from '$lib/schemas.js';
-	import { client } from '$lib/eden';
-	import SheetLayoutForm from '$lib/components/utils/SheetLayoutForm.svelte';
 
 	let { category, open = $bindable(false) } = $props();
 

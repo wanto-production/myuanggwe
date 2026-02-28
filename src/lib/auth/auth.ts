@@ -5,6 +5,7 @@ import { betterAuth } from 'better-auth';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { getRequestEvent } from '$app/server';
 import * as schema from '$lib/server/db/schema';
+import { BETTER_AUTH_SECRET } from '$env/static/private';
 
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
@@ -13,7 +14,8 @@ export const auth = betterAuth({
 	}),
 	appName: 'myuanggwe',
 	plugins: [organization(), username(), sveltekitCookies(getRequestEvent)],
-	emailAndPassword: {
+	secret: BETTER_AUTH_SECRET,
+  emailAndPassword: {
 		enabled: true
 	}
 });

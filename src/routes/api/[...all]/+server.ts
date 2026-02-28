@@ -1,6 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { Elysia, status } from 'elysia'
-import { auth } from '$lib/auth/auth'
+import { Elysia } from 'elysia'
 import { categorySchema, walletSchema, transactionSchema, organizationSchema, inviteSchema, joinSchema } from '$lib/schemas'
 import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'
 import { db } from '$lib/server/db'
@@ -12,7 +11,7 @@ import {
   categories
 } from '$lib/server/db/schema'
 import cors from '@elysiajs/cors'
-import { withBackendCache, backendCache } from '$lib/cache/server'
+import { withBackendCache, backendCache } from '$lib/redis/server'
 
 const betterAuth = new Elysia({ name: 'better-auth' })
   .mount(auth.handler)

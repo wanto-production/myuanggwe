@@ -1,9 +1,6 @@
 <script lang="ts">
-	import { Menu, Moon, Sun } from 'lucide-svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { onMount } from 'svelte';
-	import { sidebarToggle } from '$lib/stores';
 	import { toggleMode } from 'mode-watcher';
+  import { sidebarStore } from '$lib/stores/sidebar';
 
 	let { user } = $props();
 
@@ -22,11 +19,11 @@
 <header class="flex h-auto shrink-0 items-center gap-4 border-b-2 bg-background p-3">
 	<Button
 		disabled={!user}
-		onclick={() => sidebarToggle.update((v) => !v)}
+		onclick={() => sidebarStore.update((v) => !v)}
 		size="icon"
 		variant="outline"
 	>
-		<Menu class="h-5 w-5" />
+		<Lucide name="Menu" class="h-5 w-5" />
 		<span class="sr-only">Toggle Menu</span>
 	</Button>
 
@@ -38,9 +35,9 @@
 			<!-- Dark mode toggle - ALWAYS RENDERED -->
 			<Button onclick={toggleDarkMode} variant="ghost" size="icon">
 				{#if isDarkMode}
-					<Sun class="h-5 w-5" />
+					<Lucide name="Sun" class="h-5 w-5" />
 				{:else}
-					<Moon class="h-5 w-5" />
+					<Lucide name="Moon" class="h-5 w-5" />
 				{/if}
 			</Button>
 

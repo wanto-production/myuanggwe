@@ -1,13 +1,4 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import { cn } from '$lib/utils';
-	import { formatIDR, formatDate } from '$lib/composables/currency.js';
-	import { createQuery } from '@tanstack/svelte-query';
-	import { client } from '$lib/eden';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
-
 	// Query dashboard data
 	const dashboardQuery = createQuery(() => ({
 		queryKey: ['dashboard'],

@@ -1,11 +1,6 @@
 <script lang="ts">
-	import * as Select from '$lib/components/ui/select';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { walletSchema } from '$lib/schemas.js';
-	import { client } from '$lib/eden';
 
 	let { open = $bindable(false) } = $props();
 

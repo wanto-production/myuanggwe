@@ -1,15 +1,7 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import * as Select from '$lib/components/ui/select';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { toast } from 'svelte-sonner';
 	import { inviteSchema } from '$lib/schemas';
 	import { invalidateAll } from '$app/navigation';
-	import { createForm } from '@tanstack/svelte-form';
-	import { client } from '$lib/eden';
 
 	const inviteForm = createForm(() => ({
 		defaultValues: {

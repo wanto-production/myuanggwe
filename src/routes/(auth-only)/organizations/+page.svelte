@@ -3,6 +3,8 @@
 	import CreateForm from '$lib/components/forms/organizations/create-form.svelte';
 	import EnterForm from '$lib/components/forms/organizations/enter-form.svelte';
 	import InviteForm from '$lib/components/forms/organizations/invite-form.svelte';
+  
+  let { data } = $props()
 </script>
 
 <svelte:head>

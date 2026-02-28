@@ -1,21 +1,11 @@
 <script lang="ts">
-	import * as Command from '$lib/components/ui/command';
-	import * as Popover from '$lib/components/ui/popover';
-	import * as Collapsible from '$lib/components/ui/collapsible';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import { cn } from '$lib/utils';
-	import { authClient } from '$lib/auth/auth-client';
+  import { authClient } from '$lib/auth/auth-client';
 	import { goto, invalidate } from '$app/navigation';
-	import { buttonVariants } from '$lib/components/ui/button';
 	import type { User as UserType } from 'better-auth';
 	import type { OrganizationType } from '$lib/server/db/schema';
-	import { sidebarToggle } from '$lib/stores';
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
-	import { invalidateFn } from '$lib/@functions';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
-	import { client } from '$lib/eden';
+  import { sidebarStore } from '$lib/stores/sidebar';
 
 	const queryClient = useQueryClient();
 
@@ -34,13 +24,12 @@
 
 	let isPopoverOpen = $state(false);
 	let isOrgCollapsibleOpen = $state(false);
-	let isMinimized = $derived($sidebarToggle);
+	let isMinimized = $derived($sidebarStore);
 	let isRoot = $derived(page.url.pathname === '/');
 
 	const switchOrgsMutation = createMutation(() => ({
 		mutationKey: ['switch-from', activeOrg],
 		mutationFn: async (id: string | null) => {
-
 			const orgParam = id || 'personal'; // Use 'personal' keyword for null
 			const { data, error } = await client.orgs.change({ id: orgParam }).put();
 
@@ -48,12 +37,12 @@
 				throw new Error('Failed to switch organization');
 			}
 
-      await invalidateFn(queryClient);
+			await invalidateFn(queryClient);
 			return data;
 		},
 		async onSuccess() {
-			await invalidate('layout:data')
-      isPopoverOpen = false;
+			await invalidate('layout:data');
+			isPopoverOpen = false;
 			toast.success('Organization switched!');
 		},
 		async onError(error: any) {
@@ -154,7 +143,7 @@
 		</Popover.Root>
 
 		<!-- Mobile Toggle -->
-		<Button class="sm:hidden" variant="outline" onclick={() => sidebarToggle.update((v) => !v)}>
+		<Button class="sm:hidden" variant="outline" onclick={() => sidebarStore.update((v) => !v)}>
 			<Lucide name="ChevronLeft" class={cn(isMinimized && 'rotate-180')} />
 		</Button>
 	</div>
@@ -198,7 +187,7 @@
 					</div>
 				</Collapsible.Trigger>
 
-				<Collapsible.Content class="space-y-1 pt-1 pl-9">
+				<Collapsible.Content class="space-y-1 pt-1 ">
 					<a
 						href="/organizations"
 						class={cn(
@@ -210,20 +199,20 @@
 						<span>Buat Grup Baru</span>
 					</a>
 
-					<a
-						href="/organizations/invitations"
-						class={cn(
-							'flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-all hover:bg-accent',
-							page.url.pathname === '/organizations/invitations' && 'bg-accent'
-						)}
-					>
-						<div class="flex items-center gap-2">
-							<Lucide name="Mail" size={16} />
-							<span>Invitations</span>
-						</div>
-					</a>
-
 					{#if activeOrg}
+						<a
+							href="/organizations/invitations"
+							class={cn(
+								'flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm transition-all hover:bg-accent',
+								page.url.pathname === '/organizations/invitations' && 'bg-accent'
+							)}
+						>
+							<div class="flex items-center gap-2">
+								<Lucide name="Mail" size={16} />
+								<span>Invitations</span>
+							</div>
+						</a>
+
 						<a
 							href="/organizations/manage"
 							class={cn(

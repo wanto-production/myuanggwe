@@ -1,17 +1,8 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
 	import { toast } from 'svelte-sonner';
 	import { organizationSchema } from '$lib/schemas';
 	import { authClient } from '$lib/auth/auth-client';
 	import { goto, invalidate } from '$app/navigation';
-	import { invalidateFn } from '$lib/@functions';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
-	import { client } from '$lib/eden';
-	import { createForm } from '@tanstack/svelte-form';
-	import { useQueryClient } from '@tanstack/svelte-query';
 
 	const queryClient = useQueryClient();
 	const session = authClient.useSession();

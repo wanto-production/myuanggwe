@@ -1,17 +1,7 @@
 <script lang="ts">
-	import Separator from '$lib/components/ui/separator/separator.svelte';
-	import { createForm } from '@tanstack/svelte-form';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { toast } from 'svelte-sonner';
 	import { goto, invalidate } from '$app/navigation';
 	import { joinSchema } from '$lib/schemas';
-	import { invalidateFn } from '$lib/@functions';
-	import { useQueryClient } from '@tanstack/svelte-query';
-	import { client } from '$lib/eden';
 
 	const queryClient = useQueryClient();
 

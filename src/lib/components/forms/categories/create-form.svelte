@@ -1,10 +1,5 @@
 <script lang="ts">
-	import * as Select from '$lib/components/ui/select';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
 	import { categorySchema } from '$lib/schemas.js';
-	import { client } from '$lib/eden.js';
 	import { toast } from 'svelte-sonner';
   
 	const queryClient = useQueryClient();

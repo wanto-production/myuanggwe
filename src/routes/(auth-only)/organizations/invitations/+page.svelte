@@ -1,10 +1,4 @@
 <script lang="ts">
-	import { createQuery } from '@tanstack/svelte-query';
-	import * as Card from '$lib/components/ui/card';
-	import * as Table from '$lib/components/ui/table';
-	import { Input } from '$lib/components/ui/input';
-	import { Badge } from '$lib/components/ui/badge';
-	import Lucide from '$lib/components/utils/Lucide.svelte';
 	import { authClient } from '$lib/auth/auth-client';
 
 	let { data } = $props();

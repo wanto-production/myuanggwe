@@ -6,8 +6,24 @@
 // biome-ignore lint: disable
 export {}
 declare global {
+  const Card: typeof import('$lib/components/ui/card')
+  const Collapsible: typeof import('$lib/components/ui/collapsible')
+  const Command: typeof import('$lib/components/ui/command')
+  const Dialog: typeof import('$lib/components/ui/dialog')
+  const DropdownMenu: typeof import('$lib/components/ui/dropdown-menu')
+  const Popover: typeof import('$lib/components/ui/popover')
+  const Select: typeof import('$lib/components/ui/select')
+  const Sheet: typeof import('$lib/components/ui/sheet')
+  const Table: typeof import('$lib/components/ui/table')
+  const Tabs: typeof import('$lib/components/ui/tabs')
+  const Tooltip: typeof import('$lib/components/ui/tooltip')
   const afterUpdate: typeof import('svelte').afterUpdate
+  const auth: typeof import('../lib/auth/auth').auth
+  const authClient: typeof import('../lib/auth/auth-client').authClient
   const beforeUpdate: typeof import('svelte').beforeUpdate
+  const buttonVariants: typeof import('$lib/components/ui/button').buttonVariants
+  const client: typeof import('../lib/composables/eden').client
+  const cn: typeof import('$lib/utils').cn
   const createEventDispatcher: typeof import('svelte').createEventDispatcher
   const createForm: typeof import('@tanstack/svelte-form').createForm
   const createMutation: typeof import('@tanstack/svelte-query').createMutation
@@ -19,6 +35,7 @@ declare global {
   const getAllContexts: typeof import('svelte').getAllContexts
   const getContext: typeof import('svelte').getContext
   const hasContext: typeof import('svelte').hasContext
+  const invalidateFn: typeof import('../lib/composables/invalidateQuery').invalidateFn
   const onDestroy: typeof import('svelte').onDestroy
   const onMount: typeof import('svelte').onMount
   const readable: typeof import('svelte/store').readable
@@ -26,4 +43,10 @@ declare global {
   const tick: typeof import('svelte').tick
   const useQueryClient: typeof import('@tanstack/svelte-query').useQueryClient
   const writable: typeof import('svelte/store').writable
+}
+// for type re-export
+declare global {
+  // @ts-ignore
+  export type { LayoutData } from '../lib/@types/layout'
+  import('../lib/@types/layout')
 }

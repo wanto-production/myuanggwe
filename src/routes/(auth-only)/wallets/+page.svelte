@@ -1,7 +1,4 @@
 <script lang="ts">
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import { Banknote, Plus, MoreVertical } from 'lucide-svelte';
 	import WalletsForm from '$lib/components/forms/wallets/create-form.svelte';
 	import WalletsList from '$lib/components/tables/wallets/wallets-list.svelte';
 
@@ -33,7 +30,7 @@
 
 		<Dialog.Root bind:open={dialog_open}>
 			<Dialog.Trigger class={buttonVariants({ class: 'gap-2' })}>
-				<Plus class="h-4 w-4" /> Tambah Dompet
+				<Lucide name="Plus" class="h-4 w-4" /> Tambah Dompet
 			</Dialog.Trigger>
 
 			<Dialog.Content>
