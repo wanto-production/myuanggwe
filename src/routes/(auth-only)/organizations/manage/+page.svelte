@@ -50,7 +50,11 @@
 	const deleteOrg = createMutation(() => ({
 		mutationFn: async () => {
 			const { data, error } = await client['manage-orgs'].delete();
-			if (error) throw error;
+
+			if (error) {
+				throw new Error('cannot delete orgs!');
+			}
+
 			await invalidate('layout:data');
 			await invalidateFn(queryClient);
 			return data;

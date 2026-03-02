@@ -3,15 +3,9 @@ import { Elysia } from 'elysia'
 import { categorySchema, walletSchema, transactionSchema, organizationSchema, inviteSchema, joinSchema } from '$lib/schemas'
 import { eq, and, isNull, desc, sql, gte } from 'drizzle-orm'
 import { db } from '$lib/server/db'
-import {
-  wallets,
-  session as sessionTable,
-  member,
-  transactions,
-  categories
-} from '$lib/server/db/schema'
+import * as schema from '$lib/server/db/schema'
 import cors from '@elysiajs/cors'
-import { withBackendCache, backendCache } from '$lib/redis/server'
+import { withBackendCache } from '$lib/redis/server'
 
 const betterAuth = new Elysia({ name: 'better-auth' })
   .mount(auth.handler)
@@ -40,18 +34,17 @@ const userData = new Elysia({ name: 'layout-data' }).derive(
       async () => {
         const [currentSessionData, userOrgs] = await Promise.all([
           db.query.session.findFirst({
-            where: eq(sessionTable.id, session?.session.id),
+            where: eq(schema.session.id, session?.session.id),
             columns: { activeOrganizationId: true }
           }),
           db.query.member.findMany({
-            where: eq(member.userId, session?.user.id),
+            where: eq(schema.member.userId, session?.user.id),
             with: { organization: true }
           })
         ])
 
         return { currentSessionData, userOrgs }
-      },
-      600
+      }
     )
 
     const activeOrg = layoutData.userOrgs.find(
@@ -65,28 +58,6 @@ const userData = new Elysia({ name: 'layout-data' }).derive(
     }
   }
 )
-
-// Helper for cache invalidation
-async function invalidateUserCache(userId: string, orgId?: string | null) {
-  const patterns = [
-    `layout:${userId}`,
-    `dashboard:user:${userId}`,
-    `wallets:user:${userId}`,
-    `transactions:user:${userId}`,
-    `categories:user:${userId}`
-  ]
-
-  if (orgId) {
-    patterns.push(
-      `dashboard:org:${orgId}`,
-      `wallets:org:${orgId}`,
-      `transactions:org:${orgId}`,
-      `categories:org:${orgId}`
-    )
-  }
-
-  await Promise.all(patterns.map((p) => backendCache.del(p)))
-}
 
 const app = new Elysia({ prefix: '/api' })
   .use(betterAuth)
@@ -215,26 +186,26 @@ const app = new Elysia({ prefix: '/api' })
             startOfMonth.setHours(0, 0, 0, 0)
 
             const contextQuery = activeOrg
-              ? eq(transactions.organizationId, activeOrg.id)
-              : and(eq(transactions.userId, userId), isNull(transactions.organizationId))
+              ? eq(schema.transactions.organizationId, activeOrg.id)
+              : and(eq(schema.transactions.userId, userId), isNull(schema.transactions.organizationId))
 
             const walletContextQuery = activeOrg
-              ? eq(wallets.organizationId, activeOrg.id)
-              : and(eq(wallets.userId, userId), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, activeOrg.id)
+              : and(eq(schema.wallets.userId, userId), isNull(schema.wallets.organizationId))
 
             const [userWallets, stats, recentTransactions] = await Promise.all([
               db.query.wallets.findMany({
                 where: walletContextQuery,
-                orderBy: [desc(wallets.createdAt)]
+                orderBy: [desc(schema.wallets.createdAt)]
               }),
               db
                 .select({
-                  type: transactions.type,
-                  total: sql<number>`cast(sum(${transactions.amount}) as integer)`
+                  type: schema.transactions.type,
+                  total: sql<number>`cast(sum(${schema.transactions.amount}) as integer)`
                 })
-                .from(transactions)
-                .where(and(contextQuery, gte(transactions.date, startOfMonth)))
-                .groupBy(transactions.type),
+                .from(schema.transactions)
+                .where(and(contextQuery, gte(schema.transactions.date, startOfMonth)))
+                .groupBy(schema.transactions.type),
               db.query.transactions.findMany({
                 where: contextQuery,
                 with: {
@@ -242,14 +213,13 @@ const app = new Elysia({ prefix: '/api' })
                   wallet: true,
                   toWallet: true
                 },
-                orderBy: [desc(transactions.date)],
+                orderBy: [desc(schema.transactions.date)],
                 limit: 5
               })
             ])
 
             return { userWallets, stats, recentTransactions }
-          },
-          300
+          }
         )
 
         const totalBalance = dashboardData.userWallets.reduce(
@@ -301,12 +271,11 @@ const app = new Elysia({ prefix: '/api' })
             async () => {
               return await db.query.wallets.findMany({
                 where: activeOrg
-                  ? eq(wallets.organizationId, activeOrg.id)
-                  : and(eq(wallets.userId, user.id), isNull(wallets.organizationId)),
+                  ? eq(schema.wallets.organizationId, activeOrg.id)
+                  : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId)),
                 orderBy: (wallets, { desc }) => [desc(wallets.createdAt)]
               })
-            },
-            300
+            }
           )
 
           return { walletList }
@@ -320,7 +289,7 @@ const app = new Elysia({ prefix: '/api' })
           const { user, activeOrg, body } = c
 
           try {
-            await db.insert(wallets).values({
+            await db.insert(schema.wallets).values({
               id: crypto.randomUUID(),
               name: body.name,
               type: body.type,
@@ -347,17 +316,17 @@ const app = new Elysia({ prefix: '/api' })
 
           try {
             const walletContextQuery = activeOrg
-              ? eq(wallets.organizationId, activeOrg.id)
-              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, activeOrg.id)
+              : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId))
 
             const result = await db
-              .update(wallets)
+              .update(schema.wallets)
               .set({
                 name: body.name,
                 type: body.type,
                 balance: body.balance
               })
-              .where(and(eq(wallets.id, params.id), walletContextQuery))
+              .where(and(eq(schema.wallets.id, params.id), walletContextQuery))
 
             if (result.rowsAffected === 0) {
               return { success: false, message: 'Wallet not found or access denied' }
@@ -379,12 +348,12 @@ const app = new Elysia({ prefix: '/api' })
         async ({ params, user, activeOrg }) => {
           try {
             const walletContextQuery = activeOrg
-              ? eq(wallets.organizationId, activeOrg.id)
-              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, activeOrg.id)
+              : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId))
 
             const result = await db
-              .delete(wallets)
-              .where(and(eq(wallets.id, params.id), walletContextQuery))
+              .delete(schema.wallets)
+              .where(and(eq(schema.wallets.id, params.id), walletContextQuery))
 
             if (result.rowsAffected === 0) {
               return { success: false, message: 'Wallet not found or access denied' }
@@ -421,8 +390,8 @@ const app = new Elysia({ prefix: '/api' })
             async () => {
               return await db.query.transactions.findMany({
                 where: activeOrg
-                  ? eq(transactions.organizationId, activeOrg.id)
-                  : and(eq(transactions.userId, user.id), isNull(transactions.organizationId)),
+                  ? eq(schema.transactions.organizationId, activeOrg.id)
+                  : and(eq(schema.transactions.userId, user.id), isNull(schema.transactions.organizationId)),
                 with: {
                   wallet: true,
                   toWallet: true,
@@ -431,7 +400,6 @@ const app = new Elysia({ prefix: '/api' })
                 orderBy: (transactions, { desc }) => [desc(transactions.date)]
               })
             },
-            300
           )
 
           return { transactionList }
@@ -451,13 +419,13 @@ const app = new Elysia({ prefix: '/api' })
 
           try {
             const walletContextQuery = orgId
-              ? eq(wallets.organizationId, orgId)
-              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, orgId)
+              : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId))
 
             await db.transaction(async (tx) => {
               // 1. Ambil data dompet pengirim (Wallet A)
               const walletSource = await tx.query.wallets.findFirst({
-                where: and(eq(wallets.id, walletId), walletContextQuery)
+                where: and(eq(schema.wallets.id, walletId), walletContextQuery)
               })
               if (!walletSource) throw new Error('Source wallet not found or access denied')
 
@@ -472,27 +440,27 @@ const app = new Elysia({ prefix: '/api' })
 
                 // Update Dompet Pengirim (Kurangi Saldo)
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletSource.balance - amount })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
 
                 // Update Dompet Penerima (Tambah Saldo)
                 const walletDest = await tx.query.wallets.findFirst({
-                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
+                  where: and(eq(schema.wallets.id, toWalletId), walletContextQuery)
                 })
                 if (!walletDest) throw new Error('Destination wallet not found or access denied')
 
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletDest.balance + amount })
-                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, toWalletId), walletContextQuery))
               } else {
                 // Update Dompet Normal (Income/Expense)
                 const change = type === 'income' ? amount : -amount
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletSource.balance + change })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
               }
 
               // 4. INSERT RECORD TRANSAKSI
@@ -515,7 +483,7 @@ const app = new Elysia({ prefix: '/api' })
                 }
               }
 
-              await tx.insert(transactions).values(insertPayload)
+              await tx.insert(schema.transactions).values(insertPayload)
             })
 
             // Invalidate cache after successful transaction
@@ -546,13 +514,13 @@ const app = new Elysia({ prefix: '/api' })
 
           try {
             const walletContextQuery = orgId
-              ? eq(wallets.organizationId, orgId)
-              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, orgId)
+              : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId))
 
             await db.transaction(async (tx) => {
               // 1. Ambil transaksi lama
               const oldTransaction = await tx.query.transactions.findFirst({
-                where: and(eq(transactions.id, transactionId), eq(transactions.userId, user.id))
+                where: and(eq(schema.transactions.id, transactionId), eq(schema.transactions.userId, user.id))
               })
 
               if (!oldTransaction) {
@@ -567,42 +535,42 @@ const app = new Elysia({ prefix: '/api' })
 
               // Dapatkan saldo dompet lama saat ini untuk diperbarui
               const currentOldWalletSource = await tx.query.wallets.findFirst({
-                where: and(eq(wallets.id, oldWalletId), walletContextQuery)
+                where: and(eq(schema.wallets.id, oldWalletId), walletContextQuery)
               })
               if (!currentOldWalletSource) throw new Error('Old source wallet not found or access denied')
 
               // Revert saldo dompet sumber lama
               if (oldType === 'income') {
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: currentOldWalletSource.balance - oldAmount })
-                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, oldWalletId), walletContextQuery))
               } else if (oldType === 'expense') {
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: currentOldWalletSource.balance + oldAmount })
-                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, oldWalletId), walletContextQuery))
               } else if (oldType === 'transfer' && oldToWalletId) {
                 const currentOldWalletDestination = await tx.query.wallets.findFirst({
-                  where: and(eq(wallets.id, oldToWalletId), walletContextQuery)
+                  where: and(eq(schema.wallets.id, oldToWalletId), walletContextQuery)
                 })
                 if (!currentOldWalletDestination)
                   throw new Error('Old destination wallet not found or access denied')
 
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: currentOldWalletSource.balance + oldAmount })
-                  .where(and(eq(wallets.id, oldWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, oldWalletId), walletContextQuery))
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: currentOldWalletDestination.balance - oldAmount })
-                  .where(and(eq(wallets.id, oldToWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, oldToWalletId), walletContextQuery))
               }
 
               // 3. Terapkan efek transaksi baru pada saldo dompet
               // PENTING: Ambil ulang saldo wallet setelah di-revert
               const newWalletSource = await tx.query.wallets.findFirst({
-                where: and(eq(wallets.id, walletId), walletContextQuery)
+                where: and(eq(schema.wallets.id, walletId), walletContextQuery)
               })
               if (!newWalletSource) throw new Error('New source wallet not found or access denied')
 
@@ -615,24 +583,24 @@ const app = new Elysia({ prefix: '/api' })
                 if (!toWalletId) throw new Error('Destination wallet required for transfer')
 
                 const newWalletDestination = await tx.query.wallets.findFirst({
-                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
+                  where: and(eq(schema.wallets.id, toWalletId), walletContextQuery)
                 })
                 if (!newWalletDestination) throw new Error('New destination wallet not found or access denied')
 
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: newWalletSource.balance - amount })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: newWalletDestination.balance + amount })
-                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, toWalletId), walletContextQuery))
               } else {
                 const change = type === 'income' ? amount : -amount
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: newWalletSource.balance + change })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
               }
 
               // 4. Perbarui record transaksi
@@ -657,9 +625,9 @@ const app = new Elysia({ prefix: '/api' })
               }
 
               await tx
-                .update(transactions)
+                .update(schema.transactions)
                 .set(updatePayload)
-                .where(eq(transactions.id, transactionId))
+                .where(eq(schema.transactions.id, transactionId))
             })
 
             // Invalidate cache after successful update
@@ -689,13 +657,13 @@ const app = new Elysia({ prefix: '/api' })
 
           try {
             const walletContextQuery = orgId
-              ? eq(wallets.organizationId, orgId)
-              : and(eq(wallets.userId, user.id), isNull(wallets.organizationId))
+              ? eq(schema.wallets.organizationId, orgId)
+              : and(eq(schema.wallets.userId, user.id), isNull(schema.wallets.organizationId))
 
             await db.transaction(async (tx) => {
               // 1. Ambil data transaksi yang akan dihapus
               const transaction = await tx.query.transactions.findFirst({
-                where: and(eq(transactions.id, transactionId), eq(transactions.userId, user.id))
+                where: and(eq(schema.transactions.id, transactionId), eq(schema.transactions.userId, user.id))
               })
 
               if (!transaction) {
@@ -706,7 +674,7 @@ const app = new Elysia({ prefix: '/api' })
 
               // 2. Ambil data wallet sumber
               const walletSource = await tx.query.wallets.findFirst({
-                where: and(eq(wallets.id, walletId), walletContextQuery)
+                where: and(eq(schema.wallets.id, walletId), walletContextQuery)
               })
 
               if (!walletSource) {
@@ -717,19 +685,19 @@ const app = new Elysia({ prefix: '/api' })
               if (type === 'income') {
                 // Jika income, kurangi saldo (karena uang masuk akan dibatalkan)
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletSource.balance - amount })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
               } else if (type === 'expense') {
                 // Jika expense, tambah saldo (karena pengeluaran dibatalkan)
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletSource.balance + amount })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
               } else if (type === 'transfer' && toWalletId) {
                 // Jika transfer, kembalikan saldo ke wallet sumber dan kurangi dari wallet tujuan
                 const walletDestination = await tx.query.wallets.findFirst({
-                  where: and(eq(wallets.id, toWalletId), walletContextQuery)
+                  where: and(eq(schema.wallets.id, toWalletId), walletContextQuery)
                 })
 
                 if (!walletDestination) {
@@ -738,19 +706,19 @@ const app = new Elysia({ prefix: '/api' })
 
                 // Kembalikan uang ke wallet sumber
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletSource.balance + amount })
-                  .where(and(eq(wallets.id, walletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, walletId), walletContextQuery))
 
                 // Kurangi uang dari wallet tujuan
                 await tx
-                  .update(wallets)
+                  .update(schema.wallets)
                   .set({ balance: walletDestination.balance - amount })
-                  .where(and(eq(wallets.id, toWalletId), walletContextQuery))
+                  .where(and(eq(schema.wallets.id, toWalletId), walletContextQuery))
               }
 
               // 4. Hapus transaksi
-              await tx.delete(transactions).where(eq(transactions.id, transactionId))
+              await tx.delete(schema.transactions).where(eq(schema.transactions.id, transactionId))
             })
 
             // Invalidate cache after successful deletion
@@ -784,7 +752,7 @@ const app = new Elysia({ prefix: '/api' })
             cacheKey,
             async () => {
               const queryUserOrgs = await db.query.member.findMany({
-                where: eq(member.userId, user.id),
+                where: eq(schema.member.userId, user.id),
                 with: { organization: true }
               })
 
@@ -794,13 +762,12 @@ const app = new Elysia({ prefix: '/api' })
 
               const categoryList = await db.query.categories.findMany({
                 where: activeOrg
-                  ? eq(categories.organizationId, activeOrg.id)
-                  : and(eq(categories.userId, user.id), isNull(categories.organizationId))
+                  ? eq(schema.categories.organizationId, activeOrg.id)
+                  : and(eq(schema.categories.userId, user.id), isNull(schema.categories.organizationId))
               })
 
               return { categoryList, activeOrg: activeOrg || null }
             },
-            600
           )
         },
         { auth: true }
@@ -811,10 +778,10 @@ const app = new Elysia({ prefix: '/api' })
         async (c) => {
           const { user, session: authSession } = c
           const currentSession = await db.query.session.findFirst({
-            where: eq(sessionTable.id, authSession.id)
+            where: eq(schema.session.id, authSession.id)
           })
 
-          await db.insert(categories).values({
+          await db.insert(schema.categories).values({
             ...c.body,
             userId: user.id,
             organizationId: currentSession?.activeOrganizationId || null
@@ -833,8 +800,8 @@ const app = new Elysia({ prefix: '/api' })
           const { user, currentSession } = c
           try {
             await db
-              .delete(categories)
-              .where(and(eq(categories.userId, user.id), eq(categories.id, c.params.id)))
+              .delete(schema.categories)
+              .where(and(eq(schema.categories.userId, user.id), eq(schema.categories.id, c.params.id)))
 
             await invalidateUserCache(user.id, currentSession?.activeOrganizationId)
 
@@ -852,9 +819,9 @@ const app = new Elysia({ prefix: '/api' })
           const { user, currentSession } = c
           try {
             await db
-              .update(categories)
+              .update(schema.categories)
               .set({ ...c.body })
-              .where(and(eq(categories.userId, user.id), eq(categories.id, c.params.id)))
+              .where(and(eq(schema.categories.userId, user.id), eq(schema.categories.id, c.params.id)))
 
             await invalidateUserCache(user.id, currentSession?.activeOrganizationId)
 
@@ -876,7 +843,7 @@ const app = new Elysia({ prefix: '/api' })
         if (!activeOrg) return { org: null, members: [] }
 
         const members = await db.query.member.findMany({
-          where: eq(member.organizationId, activeOrg.id),
+          where: eq(schema.member.organizationId, activeOrg.id),
           with: { user: true }
         })
 
@@ -894,12 +861,12 @@ const app = new Elysia({ prefix: '/api' })
 
         // Check if current user is owner
         const requester = await db.query.member.findFirst({
-          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+          where: and(eq(schema.member.organizationId, activeOrg.id), eq(schema.member.userId, user.id))
         })
 
         if (requester?.role !== 'owner') return status(403)
 
-        await db.delete(member).where(eq(member.id, params.id))
+        await db.delete(schema.member).where(eq(schema.member.id, params.id))
         await invalidateUserCache(user.id, activeOrg.id)
 
         return { message: 'Member removed' }
@@ -911,12 +878,12 @@ const app = new Elysia({ prefix: '/api' })
 
         // Check if current user is owner
         const requester = await db.query.member.findFirst({
-          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+          where: and(eq(schema.member.organizationId, activeOrg.id), eq(schema.member.userId, user.id))
         })
 
         if (requester?.role !== 'owner') return status(403)
 
-        await db.update(member).set({ role }).where(eq(member.id, params.id))
+        await db.update(schema.member).set({ role }).where(eq(schema.member.id, params.id))
         return { message: 'Role updated' }
       }, { auth: true })
 
@@ -924,7 +891,7 @@ const app = new Elysia({ prefix: '/api' })
         if (!activeOrg) return status(400)
 
         const requester = await db.query.member.findFirst({
-          where: and(eq(member.organizationId, activeOrg.id), eq(member.userId, user.id))
+          where: and(eq(schema.member.organizationId, activeOrg.id), eq(schema.member.userId, user.id))
         })
 
         if (requester?.role !== 'owner') return status(403)
@@ -932,10 +899,10 @@ const app = new Elysia({ prefix: '/api' })
         try {
           await db.transaction(async (tx) => {
             // Delete all associated application data
-            await tx.delete(transactions).where(eq(transactions.organizationId, activeOrg.id))
-            await tx.delete(wallets).where(eq(wallets.organizationId, activeOrg.id))
-            await tx.delete(categories).where(eq(categories.organizationId, activeOrg.id))
-            await tx.delete(member).where(eq(member.organizationId, activeOrg.id))
+            await tx.delete(schema.transactions).where(eq(schema.transactions.organizationId, activeOrg.id))
+            await tx.delete(schema.wallets).where(eq(schema.wallets.organizationId, activeOrg.id))
+            await tx.delete(schema.categories).where(eq(schema.categories.organizationId, activeOrg.id))
+            await tx.delete(schema.member).where(eq(schema.member.organizationId, activeOrg.id))
 
             // Delete the organization itself using Better Auth API
             await auth.api.deleteOrganization({

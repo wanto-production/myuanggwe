@@ -31,6 +31,7 @@
     "getContext": true,
     "hasContext": true,
     "invalidateFn": true,
+    "invalidateUserCache": true,
     "onDestroy": true,
     "onMount": true,
     "readable": true,

@@ -1,5 +1,7 @@
 import { Redis } from '@upstash/redis'
 import { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN } from '$env/static/private'
+import type { DurationInput } from 'effect/Duration'
+import { Duration } from 'effect'
 
 const redis = new Redis({
 	url: UPSTASH_REDIS_REST_URL,
@@ -123,7 +125,7 @@ export const backendCache = {
 export async function withBackendCache<T>(
 	key: string,
 	fetcher: () => Promise<T>,
-	ttl: number = 3600
+	ttl: DurationInput = Duration.minutes(10)
 ): Promise<T> {
 	const startTime = Date.now()
 
@@ -149,7 +151,7 @@ export async function withBackendCache<T>(
 	log.fetch(key, fetchDuration)
 
 	// Store in cache
-	backendCache.set(key, data, ttl).catch((err) => {
+	backendCache.set(key, data, Duration.toMillis(ttl)).catch((err) => {
 		log.error('write', key, err)
 	})
 

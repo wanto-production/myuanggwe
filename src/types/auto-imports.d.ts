@@ -36,6 +36,7 @@ declare global {
   const getContext: typeof import('svelte').getContext
   const hasContext: typeof import('svelte').hasContext
   const invalidateFn: typeof import('../lib/composables/invalidateQuery').invalidateFn
+  const invalidateUserCache: typeof import('../lib/composables/invalidateRedis').invalidateUserCache
   const onDestroy: typeof import('svelte').onDestroy
   const onMount: typeof import('svelte').onMount
   const readable: typeof import('svelte/store').readable

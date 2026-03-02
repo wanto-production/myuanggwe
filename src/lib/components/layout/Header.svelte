@@ -9,7 +9,7 @@
 	onMount(() => {
 		isDarkMode = document.documentElement.classList.contains('dark');
 	});
-
+  
 	function toggleDarkMode() {
 		isDarkMode = !isDarkMode;
 		toggleMode();
