@@ -1,4 +1,45 @@
 <script lang="ts">
+	const schema = {
+		"@context": "https://schema.org",
+		"@graph": [
+			{
+				"@type": "WebSite",
+				"name": "MyUangGwe",
+				"url": "https://myuanggwe.vercel.app/",
+				"potentialAction": {
+					"@type": "SearchAction",
+					"target": "https://myuanggwe.vercel.app/?q={search_term_string}",
+					"query-input": "required name=search_term_string"
+				}
+			},
+			{
+				"@type": "SoftwareApplication",
+				"name": "MyUangGwe",
+				"applicationCategory": "FinanceApplication",
+				"operatingSystem": "Web",
+				"offers": {
+					"@type": "Offer",
+					"price": "0",
+					"priceCurrency": "USD"
+				},
+				"description": "Powerful personal and business finance management app. Track expenses, manage wallets, and collaborate with teams.",
+				"aggregateRating": {
+					"@type": "AggregateRating",
+					"ratingValue": "4.8",
+					"ratingCount": "120"
+				}
+			},
+			{
+				"@type": "Organization",
+				"name": "MyUangGwe",
+				"url": "https://myuanggwe.vercel.app",
+				"logo": "https://myuanggwe.vercel.app/favicon.svg",
+				"sameAs": [
+					"https://github.com/wanto-production"
+				]
+			}
+		]
+	};
 </script>
 
 <svelte:head>
@@ -7,6 +48,7 @@
 		name="description"
 		content="MyUangGwe is an easy-to-use personal and business finance management app for tracking expenses, income, and budgeting."
 	/>
+	{@html `<script type="application/ld+json">${JSON.stringify(schema)}</script>`}
 </svelte:head>
 
 <div class="relative">

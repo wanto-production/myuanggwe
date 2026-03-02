@@ -16,46 +16,52 @@
 	let organizations = $derived((data.organizations || []) as any[]);
 
 	let isAuthPage = $derived(page.url.pathname === '/login' || page.url.pathname === '/register');
+	
+	// Canonical URL Construction
+	const baseUrl = 'https://myuanggwe.vercel.app';
+	let canonicalUrl = $derived(`${baseUrl}${page.url.pathname === '/' ? '' : page.url.pathname}`);
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<link rel="canonical" href={canonicalUrl} />
 
-	<title>MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis</title>
+	<meta name="google-site-verification" content="bWRaoFVlyB345Wietszb9IvK4x9MIN9hvtEA9ChIgoQ" />
+
+  <title>MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis</title>
 	<meta
 		name="description"
-		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran secara real-time."
 	/>
 	<meta
 		name="keywords"
-		content="pengelola keuangan, aplikasi keuangan, pencatatan pengeluaran, manajemen anggaran, keuangan pribadi, keuangan bisnis"
+		content="pengelola keuangan, aplikasi keuangan, pencatatan pengeluaran, manajemen anggaran, keuangan pribadi, keuangan bisnis, expense tracker, personal finance app"
 	/>
 	<meta name="author" content="wanto-production" />
 	<meta name="robots" content="index, follow" />
 
 	<!-- Open Graph / Facebook -->
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://myuanggwe.vercel.app/" />
+	<meta property="og:url" content={canonicalUrl} />
 	<meta property="og:title" content="MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis" />
 	<meta
 		property="og:description"
-		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran secara real-time."
 	/>
+	<!-- Open Graph Image (Recommend adding an actual og-image.png to static later) -->
+	<!-- <meta property="og:image" content={`${baseUrl}/og-image.png`} /> -->
 
 	<!-- Twitter -->
 	<meta property="twitter:card" content="summary_large_image" />
-	<meta property="twitter:url" content="https://myuanggwe.vercel.app/" />
+	<meta property="twitter:url" content={canonicalUrl} />
 	<meta
 		property="twitter:title"
 		content="MyUangGwe - Aplikasi Pengelola Keuangan Pribadi & Bisnis"
 	/>
 	<meta
 		property="twitter:description"
-		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran."
+		content="MyUangGwe adalah aplikasi pengelola keuangan pribadi dan bisnis yang mudah digunakan untuk mencatat pengeluaran, pendapatan, dan mengatur anggaran secara real-time."
 	/>
-
-	<!-- Canonical URL -->
-	<link rel="canonical" href="https://myuanggwe.vercel.app/" />
 </svelte:head>
 
 <ModeWatcher />

@@ -1,38 +1,11 @@
-# robots.txt for MyUangGwe
-# https://myuanggwe.vercel.app
-
 User-agent: *
 Allow: /
-Disallow: /login
-Disallow: /register
-Disallow: /dashboard
-Disallow: /dashboard/*
-Disallow: /transactions
-Disallow: /transactions/*
-Disallow: /wallets
-Disallow: /wallets/*
-Disallow: /categories
-Disallow: /categories/*
-Disallow: /organizations
-Disallow: /organizations/*
-Disallow: /settings
-Disallow: /settings/*
-Disallow: /profile
-Disallow: /profile/*
-Disallow: /api/*
-Disallow: /*.json$
-
-Allow: /favicon.ico
-Allow: /logo.svg
-Allow: /og-image.png
-Allow: /*.css$
-Allow: /*.js$
-
-Disallow: /.env
-Disallow: /.git
-Disallow: /package.json
-Disallow: /tsconfig.json
-
-Crawl-delay: 10
+Disallow: /dashboard/
+Disallow: /transactions/
+Disallow: /wallets/
+Disallow: /categories/
+Disallow: /organizations/
+Disallow: /api/
+Disallow: /private/
 
 Sitemap: https://myuanggwe.vercel.app/sitemap.xml
