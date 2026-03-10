@@ -31,6 +31,7 @@ declare global {
   const createForm: typeof import('@tanstack/svelte-form').createForm
   const createMutation: typeof import('@tanstack/svelte-query').createMutation
   const createQuery: typeof import('@tanstack/svelte-query').createQuery
+  const createServer: typeof import('../lib/composables/server').createServer
   const derived: typeof import('svelte/store').derived
   const formatDate: typeof import('../lib/composables/currency').formatDate
   const formatIDR: typeof import('../lib/composables/currency').formatIDR
