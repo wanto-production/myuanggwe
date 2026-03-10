@@ -1,7 +1,7 @@
 import Elysia from "elysia";
 import { withBackendCache } from "$lib/redis/server";
 import { db } from "../../db";
-import * as schema from "../db/schema"
+import * as schema from "../../db/schema"
 import { eq } from "drizzle-orm";
 
 export const userData = new Elysia({ name: 'layout-data' }).derive(
