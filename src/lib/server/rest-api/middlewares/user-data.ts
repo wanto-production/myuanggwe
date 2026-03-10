@@ -1,6 +1,6 @@
 import Elysia from "elysia";
 import { withBackendCache } from "$lib/redis/server";
-import { db } from "../db";
+import { db } from "../../db";
 import * as schema from "../db/schema"
 import { eq } from "drizzle-orm";
 
