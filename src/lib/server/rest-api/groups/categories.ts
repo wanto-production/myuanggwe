@@ -1,9 +1,9 @@
-
 import { eq, and, isNull } from 'drizzle-orm'
 import { db } from '$lib/server/db'
 import * as schema from '$lib/server/db/schema'
 import { withBackendCache } from '$lib/redis/server'
 import { categorySchema } from '$lib/schemas' 
+import { createServer } from '../server'
 
 export const categoriesGroup = createServer({ name: 'categories', prefix: '/categories' })
   .get(

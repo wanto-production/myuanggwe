@@ -26,7 +26,6 @@
     "createForm": true,
     "createMutation": true,
     "createQuery": true,
-    "createServer": true,
     "derived": true,
     "formatDate": true,
     "formatIDR": true,

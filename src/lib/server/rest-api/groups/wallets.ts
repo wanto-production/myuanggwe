@@ -3,6 +3,7 @@ import { db } from '$lib/server/db'
 import * as schema from '$lib/server/db/schema'
 import { withBackendCache } from '$lib/redis/server'
 import { walletSchema } from '$lib/schemas'
+import { createServer } from '../server'
 
 export const walletsGroup = createServer({ name: 'wallets', prefix: '/wallets' })
   .get(
