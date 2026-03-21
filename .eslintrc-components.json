@@ -1,15 +1,15 @@
 {
-	"globals": {
-		"Badge": true,
-		"Button": true,
-		"Input": true,
-		"Label": true,
-		"Progress": true,
-		"Separator": true,
-		"Skeleton": true,
-		"Sonner": true,
-		"DropdownAction": true,
-		"Lucide": true,
-		"SheetLayoutForm": true
-	}
+    "globals": {
+        "Badge": true,
+        "Button": true,
+        "Input": true,
+        "Label": true,
+        "Progress": true,
+        "Separator": true,
+        "Skeleton": true,
+        "Sonner": true,
+        "DropdownAction": true,
+        "Lucide": true,
+        "SheetLayoutForm": true
+    }
 }

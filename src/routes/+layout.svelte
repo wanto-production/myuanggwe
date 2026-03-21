@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.ico';
 	import { page } from '$app/state';
 	import { Toaster } from '$lib/components/ui/sonner';
 	import Sidebar from '$lib/components/layout/Sidebar.svelte';
